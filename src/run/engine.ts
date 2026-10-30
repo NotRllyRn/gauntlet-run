@@ -1,4 +1,5 @@
 import type { Focus, Game, GameProgress, Observation, Run } from "../types";
+import { scoringDefaults } from "../scoring";
 import { shuffle } from "../utils";
 // A short lease prevents a sleeping/crashed page from accruing hours of game time.
 export const GAME_LEASE_MS = 5000;
@@ -30,6 +31,7 @@ export function newRun(
   const order = random ? shuffle(ids) : [...ids];
   return {
     version: 2,
+    scoring: structuredClone(scoringDefaults),
     id: crypto.randomUUID(),
     createdAt: now,
     updatedAt: now,

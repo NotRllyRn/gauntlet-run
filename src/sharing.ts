@@ -1,18 +1,26 @@
 import type { Game, Run } from "./types";
 import { games } from "./games";
+import { scoreRun, scoreLabel, points } from "./scoring";
 import { duration } from "./utils";
 export function summary(run: Run, catalog: Game[] = games): string {
+  const scores = scoreRun(run);
   const lines = [
-    "GAUNTLET RUN · v6",
+    "GAUNTLET RUN · v7",
     `Date: ${new Date(run.createdAt).toISOString().slice(0, 10)}`,
     `Status: ${run.status}`,
+    scoreLabel(run),
     "Total excludes pauses; game times count focused game tabs only.",
     `Total: ${duration(run.clock.totalMs)}`,
   ];
   for (const game of catalog) {
     const item = run.games[game.id];
+    const earned = item?.result
+      ? scores.games[game.id]?.score
+        ? `${points(scores.games[game.id].points)} points`
+        : "score unavailable"
+      : "0 points";
     lines.push(
-      `${game.name}: ${!item ? "Not included" : !item.result ? `Unfinished · ${duration(item.activeMs)}` : `${item.result.outcome} · ${item.result.score} · ${item.result.preexisting ? "Previously completed (untimed)" : duration(item.activeMs)}`}`,
+      `${game.name}: ${!item ? "Not included" : !item.result ? `Unfinished · ${duration(item.activeMs)}` : `${item.result.outcome} · ${item.result.score} · ${item.result.preexisting ? "Previously completed (untimed)" : duration(item.activeMs)}`} · ${earned}`,
     );
   }
   return lines.join("\n");

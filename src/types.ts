@@ -55,6 +55,7 @@ export interface GameProgress {
   error: string | null;
 }
 export interface Run {
+  scoring?: import("./scoring").ScoringConfig;
   version: 2;
   id: string;
   createdAt: number;

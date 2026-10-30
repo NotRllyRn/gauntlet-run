@@ -1,4 +1,5 @@
 // Bundled into a test-only extension page, never into release builds.
+import { scoreRun, scoreLabel } from "../src/scoring.ts";
 import { games } from "../src/games.ts";
 import { spoilerImage, summary } from "../src/sharing.ts";
 const api = globalThis.browser || chrome;
@@ -190,6 +191,49 @@ async function main() {
         (r) => r.status === "complete",
         "All games complete",
       );
+      assert(
+        scoreRun(finished).unavailable.length === 0,
+        "Every browser fixture must be scorable",
+      );
+      assert(scoreRun(finished).total > 0, "Completed run earns points");
+      const frame = document.createElement("iframe");
+      frame.src = api.runtime.getURL("dashboard.html");
+      document.body.append(frame);
+      await new Promise((resolve) => (frame.onload = resolve));
+      for (
+        let i = 0;
+        i < 40 && !frame.contentDocument.getElementById("summary").textContent;
+        i++
+      )
+        await sleep(100);
+      assert(
+        frame.contentDocument.getElementById("score").textContent ===
+          scoreLabel(finished),
+        "Dashboard shows total",
+      );
+      assert(
+        frame.contentDocument.getElementById("summary").textContent ===
+          summary(finished),
+        "Dashboard shows canonical summary",
+      );
+      let copied;
+      Object.defineProperty(
+        frame.contentWindow.navigator.clipboard,
+        "writeText",
+        {
+          value: async (text) => {
+            copied = text;
+          },
+          configurable: true,
+        },
+      );
+      frame.contentDocument.getElementById("copy").click();
+      await sleep(100);
+      assert(
+        copied === summary(finished),
+        "Copy button writes scored non-spoiler summary",
+      );
+      frame.remove();
       const images = await api.storage.local.get(
         Object.values(finished.games).map((g) => g.screenshotKey),
       );

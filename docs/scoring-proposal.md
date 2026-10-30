@@ -1,4 +1,6 @@
-# Gauntlet scoring proposal — for review, not implemented
+# Gauntlet scoring proposal (historical)
+
+Implemented rules and share-only adaptations are documented in [scoring.md](scoring.md). This document retains the original alternatives and is not the implementation specification.
 
 ## Recommended structure
 

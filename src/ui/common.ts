@@ -1,3 +1,4 @@
+import { scoreRun, scoreLabel, points } from "../scoring";
 import { api } from "../browser/api";
 import type { Command, Run } from "../types";
 import { games } from "../games";
@@ -48,6 +49,8 @@ export function renderRun(run: Run | null): void {
   element("run-title").textContent = run
     ? `Run ${run.status}`
     : "No active run";
+  element("score").textContent = run ? scoreLabel(run) : "";
+  const scores = run && scoreRun(run);
   const active = run && ["running", "paused"].includes(run.status);
   element<HTMLButtonElement>("next").disabled = !active;
   element<HTMLButtonElement>("pause").disabled = !active;
@@ -68,6 +71,10 @@ export function renderRun(run: Run | null): void {
     detail.textContent = item.result
       ? `${item.result.outcome} · ${item.result.score}${item.result.preexisting ? " · previously completed" : ""}`
       : `${item.progress} guesses · unfinished`;
+    if (item.result)
+      detail.textContent += scores?.games[game.id]?.score
+        ? ` · ${points(scores.games[game.id].points)} points`
+        : " · score unavailable";
     const timer = document.createElement("span");
     timer.id = `time-${game.id}`;
     info.append(name, detail, timer);
