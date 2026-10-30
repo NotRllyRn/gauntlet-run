@@ -85,6 +85,8 @@ Do not sum greens across all guesses or count matching empty slots as ingredient
 
 Both use the six-attempt rule. On failure, any game-confirmed related-title/yellow feedback gives `q=0.5`: raw **2.5**, normalized **227.27**. Red-only or six-skip failures earn zero. The coefficient 0.5 is configurable.
 
+**Alternative: solve-only scoring.** Keep `12-g` on wins and award zero for every failure. Raw range stays **0–11**, correction **1000/11**. This is simpler and avoids treating every related-title hint as equally close, but discards genuine partial identification. The recommended related-feedback method above rewards that knowledge but can overvalue a weak relationship; its `q=0.5` coefficient is a policy choice.
+
 These games do not provide a trustworthy continuous distance between arbitrary titles. Do not award points for spelling similarity, a language model's judgment, account rank, streaks, or unrelated history. A yellow share square may be disabled by a user's share settings, so scoring should use saved underlying feedback rather than rely solely on visible share text. If richer same-artist/franchise categories are desired, first verify that the site exposes those specific categories.
 
 ### Costcodle — two options
