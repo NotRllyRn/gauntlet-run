@@ -7,7 +7,7 @@ Ten-game target lineup. Planned entries are not enabled in the extension until t
 | Wordle          | https://www.nytimes.com/games/wordle/index.html | Supported | Board        |
 | Globle          | https://globle-game.com/game                    | Supported | Globe        |
 | Krillion        | https://krillion.io/                            | Supported | Result panel |
-| Minecraftle     | https://minecraftle.zachmanson.com/             | Planned   | To inspect   |
+| Minecraftle     | https://minecraftle.zachmanson.com/             | Supported | Result panel |
 | Lewdle          | https://www.lewdlegame.com/App                  | Planned   | To inspect   |
 | Guess the Audio | https://guesstheaudio.com/                      | Planned   | To inspect   |
 | GuessThe.Game   | https://guessthe.game/                          | Planned   | To inspect   |

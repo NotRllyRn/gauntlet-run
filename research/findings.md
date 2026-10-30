@@ -58,3 +58,17 @@ REA CLI analysis of the three selected shipped application chunks (`0snero216p82
 A disposable live Chromium session completed dive #107 by allowing all seven rounds to expire naturally. The adapter read the resulting real DOM/storage and reconstructed exactly the native copied text: score 0 and seven black squares. An installed extension in another disposable Chromium profile reopened that observed result, saved numeric metrics and the native-format share text, and captured the result panel. The saved image was visually inspected. All nonzero tiers are covered by fixtures, not a live high-score run.
 
 The shared Chrome/Firefox browser suite now includes all three games: partial progress, tab reuse, research-time exclusion, pause/resume, real browser restart, out-of-order completion, local result/image persistence, and canonical exports. For Krillion the surrounding gameplay fixture is magenta and must be absent from the result crop; Wordle/Globle's magenta result overlays must likewise be absent from their board crops.
+
+## Minecraftle daily integration — 2026-10-30
+
+- Live build: `5TPw1-Pwe8mX8wrRLZKr9`; daily URL https://minecraftle.zachmanson.com/.
+- Root `#guesses > .box` contains one crafting table per submitted guess plus the current draft. Each table has nine input `.slot` elements; output slots are excluded from progress snapshots.
+- The completion panel is `[id^="headlessui-dialog-panel"]`. Its `h3` gives `You won/lost! Took N guesses.`; `p.whitespace-pre` is the actual native share text. The `headlessui-description` element reveals the solution and is stored only in spoiler data.
+- Share format: `Minecraftle YYYY-MM-DD N/10`, newline, three emoji rows per guess, blank lines between guesses. Normal mode uses 🟩/🟨/⬜; high contrast uses 🟧/🟦/⬜. Native losses still say `10/10`; preserve the separate structured outcome.
+- The current site's React state holds crafting tables, feedback, and outcome in memory. Local storage caches ingredients/recipes/items and preferences, plus a last-submitted date; it does not persist playable crafting tables. The extension does not read the recipe/answer cache in production or attempt private-state restoration.
+- Date follows the local calendar. `?random=true` is another mode on the same pathname; catalog query exclusions prevent Random from earning daily-game time or producing daily results.
+- Capture preserves the completion panel, including its revealed recipe. Full native share text is saved independently of the panel's scrollable share area.
+
+REA static analysis of the shipped page chunk `2ao21xf4k5tuz.js` returned evidence `ev_4ea3ac578568b31a89cd8952c9197ceca13b64994e43b22cd5d1237d205a22c8`, artifact-root SHA-256 `94429e85e3292beacdfaf24082a2f7a53c074565b3c5c1998c8cca9a401c0a0c`. Focused ordinary source reads of the context chunk `1883ut9xrm9yl.js` established in-memory state and local-date behavior. This static evidence is distinct from runtime checks.
+
+The installed Chromium extension completed the actual daily puzzle in a disposable profile using test-only recipe lookup and ordinary crafting UI interactions. It saved a one-guess win, numeric metrics, the exact text emitted by the site's Copy action, and a result-panel screenshot. The saved screenshot was visually inspected. Production code neither looks up nor changes the solution. Losses, malformed/stale summaries, high-contrast grids, and Random-mode exclusion are fixture-tested.

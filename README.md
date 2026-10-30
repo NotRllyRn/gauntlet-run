@@ -1,6 +1,6 @@
 # Gauntlet Run
 
-A **TypeScript browser extension** for playing daily Wordle, Globle, and Krillion in one resumable gauntlet. Choose games, reorder or shuffle the suggested lineup, and switch whenever you want. Scores, share text, board screenshots, progress, and timers stay on your device.
+A **TypeScript browser extension** for playing daily Wordle, Globle, Krillion, and Minecraftle in one resumable gauntlet. Choose games, reorder or shuffle the suggested lineup, and switch whenever you want. Scores, share text, board screenshots, progress, and timers stay on your device.
 
 ## Play your way
 
@@ -52,7 +52,7 @@ Wordle may show its own Play, ads, help, consent, or login screens. Dismiss thes
 
 ## Consistent sharing
 
-Share template **v3** always follows the canonical catalog order: **Wordle, Globle, then Krillion**. Actual play order, shuffle, and selection never rearrange the slots. Excluded games show `Not included`; unfinished games retain their slot and accumulated time.
+Share template **v4** always follows the canonical catalog order: **Wordle, Globle, Krillion, then Minecraftle**. Actual play order, shuffle, and selection never rearrange the slots. Excluded games show `Not included`; unfinished games retain their slot and accumulated time.
 
 - **Non-spoiler text:** date, run status, timing rules, total time, each outcome/score and focused game time. No answers, guesses, or boards.
 - **Spoiler image:** explicit spoiler label, fixed-width panels, canonical order, normalized board crops. Missing captures are labeled. Its dimensions depend only on the supported catalog, never the run's selection/order.
@@ -108,6 +108,18 @@ Saved Krillion results contain `metrics.points`, `maxPoints` (700), `rounds` (7)
 
 The extension pause stops its own timers, not Krillion's round countdown. Use the game's own pause/menu controls as needed. Normalized gauntlet scoring remains deferred; raw numeric metrics and share text are retained for it.
 
-See [the ten-game roadmap](docs/games.md). Three games are implemented; seven are planned. Fixture tests do not establish compatibility with every future site update or account configuration.
+See [the ten-game roadmap](docs/games.md). Four games are implemented; six are planned. Fixture tests do not establish compatibility with every future site update or account configuration.
 
 `node scripts/live-krillion-test.mjs` plays a zero-point daily dive in a disposable Chromium profile by letting each round expire (about four minutes), then compares saved share text with the site’s actual Copy result output and checks result capture. An optional storage JSON path reopens an already observed live result for repeat capture verification. Neither mode uses a player’s existing profile.
+
+## Minecraftle daily support
+
+Minecraftle uses the shared engine without new run or storage logic. The adapter reads submitted crafting-grid progress and the visible completion dialog. It saves the native share text directly, numeric guess count/max guesses, win/loss, observed feedback grids, and the revealed solution in spoiler data. Capture targets the result panel with the solution recipe and outcome; long share grids may scroll inside that panel, while the full share text is always saved separately.
+
+Only daily mode is tracked. Any `random` query parameter is excluded from both detection and game timing. Stats/help routes are also excluded. The game uses the browser's local calendar date.
+
+Native loss shares say `10/10`, just like a tenth-guess win. The extension preserves that exact text and saves a separate `outcome: "lost"` and `score: "X/10"`. Future scoring should use that structured outcome as well as the share grid.
+
+**Playable-board limitation:** the current Minecraftle site does not persist its crafting grids across reloads. Returning to a still-open tab resumes the board; reopening/reloading may reset it. The extension retains its observed progress, results, and timers but does not inject private site state to recreate the board. Leave the completion dialog open briefly for saving/capture; use Show Summary if capture is pending.
+
+`node scripts/live-minecraftle-test.mjs` verifies a live daily win, native Copy text equality, and saved result capture in a disposable Chromium profile. Its solution/recipe lookup is test-only and never bundled into the extension. Shared browser fixtures cover the installation pipeline in Chromium and Firefox; dedicated fixtures cover losses and high-contrast mode.
