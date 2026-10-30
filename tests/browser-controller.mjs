@@ -196,6 +196,8 @@ async function main() {
         `Every browser fixture must be scorable: ${scoreRun(finished).unavailable.join(", ")}`,
       );
       assert(scoreRun(finished).total > 0, "Completed run earns points");
+      const controllerTab = await api.tabs.getCurrent();
+      await api.tabs.update(controllerTab.id, { active: true });
       for (const page of ["dashboard", "popup"]) {
         const frame = document.createElement("iframe");
         frame.src = api.runtime.getURL(`${page}.html`);
@@ -209,6 +211,7 @@ async function main() {
           i++
         )
           await sleep(100);
+        frame.contentWindow.focus();
         const doc = frame.contentDocument;
         assert(
           doc.getElementById("score").textContent === scoreLabel(finished),
