@@ -136,10 +136,12 @@ Angle tracks the daily Guess round and waits for the optional Make round to fini
 
 Guess the Audio, GuessThe.Game, Poople, and Costcodle use the same completion, screenshot, timer, and storage pipeline as the original six games. Daily root pages are supported; archive/unlimited modes are excluded by catalog routing and puzzle-date checks.
 
-- Guess the Audio and GuessThe.Game save guess count, win/loss, native-format share text, and the revealed result panel. Share preferences are respected.
-- Poople saves the submitted word path, guesses used, optimal guesses (`par`), and extra guesses. It completes when the user reaches POOP; there is no fabricated loss state. The result card is captured.
+- Guess the Audio and GuessThe.Game save guess count, win/loss, native-format share text, and the background game view (clue/player and guess indicators). Result panels and footers are temporarily hidden for capture. Share preferences are respected.
+- Poople saves the submitted word path, guesses used, optimal guesses (`par`), and extra guesses. It completes when the user reaches POOP; there is no fabricated loss state. The full submitted path is captured behind the result overlay; the fixed site header is temporarily hidden so it cannot cover the first row.
 - Costcodle verifies stored feedback against the revealed price and visible rows. It saves guess count and win/loss publicly, with product, price, and submitted prices in spoiler data. Its capture contains the full product and guess history.
 
 Run `node scripts/live-GAME-test.mjs` with GAME equal to `guesstheaudio`, `guessthegame`, `poople`, or `costcodle` after building. These disposable live checks save `research/GAME-result.png` and `research/GAME-live-raw.json`, and compare saved shares with each site's native copy action. Deterministic per-game fixtures participate automatically in the shared Chrome/Firefox installation, restart, timing, capture, and export tests. Site changes or overlays may require refreshing an adapter or retrying capture; existing scores remain saved.
 
 Per-game research notes are in `research/*-findings.md`. Normalized scoring is intentionally deferred; all underlying results and share text are retained.
+
+See [the scoring proposal](docs/scoring-proposal.md) for raw formulas, correction factors, weighting, alternatives, and data requirements. Scoring is awaiting review and is not yet implemented.

@@ -96,3 +96,9 @@ All four disposable live Chromium checks produced actual locally saved results a
 Final validation: 70 unit/contract tests passed, TypeScript and build passed, Firefox lint returned zero errors/warnings, and the full ten-game installed-extension suite passed in Chromium and Firefox. That suite verifies partial progress, tab reuse/manual navigation, research-time exclusion, pause/resume, actual browser close/reopen, all-game completion/capture, overlay exclusion, Minecraftle's full-height stitching, and fixed-order exports. Native live equality covered the specific runs above; alternate outcomes/preferences are fixture-tested, not claims of exhaustive live verification.
 
 Share template v6 fixes all ten slots regardless of selection, shuffle, or completion order. Score normalization remains deferred; numeric metrics and native-format shares are retained.
+
+## Background capture selection — 2026-10-30
+
+At user request, Poople, Guess the Audio and GuessThe.Game now use background capture. Audio/Game target `.current-game` while hiding the result panel and footer; Poople captures its submitted path while hiding the result overlay, confetti and fixed site header. The existing shared capture mechanism restores all temporary styles. Fresh live installed-extension runs saved each background image and still matched native share text. The Poople live image was inspected to confirm that its title and first row are no longer covered by the fixed header. Browser fixtures paint result panels and the sticky Poople header magenta to catch accidental inclusion.
+
+Scoring remains unimplemented pending review. `docs/scoring-proposal.md` specifies bounded raw formulas, automatic correction factors, configurable total budget/weights, five alternative-rule comparisons, and additional data needed for proximity scoring.
