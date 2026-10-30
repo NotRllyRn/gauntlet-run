@@ -41,6 +41,8 @@ export const krillionEntry = {
 };
 export const krillionPanel =
   '<div class="ds-root"><div><div><span class="ds-done-krill">KRILLION</span><span>Dive #107 complete</span></div><div><span class="font-display">300</span><span>-3,000m</span></div></div></div>';
+const lewdleBoard = (done: boolean) =>
+  `<div class="testBoardWrapper">${Array.from({ length: 6 }, (_, i) => `<div class="testBoardRow">${Array.from({ length: 6 }, (_, j) => `<div class="testTile" ${j === 5 ? 'style="opacity:0"' : ""}>${done && i === 0 && j < 5 ? "SHAFT"[j] : ""}</div>`).join("")}</div>`).join("")}</div>`;
 export const adapterFixtures: Record<string, AdapterFixture> = {
   wordle: {
     storageRequired: false,
@@ -124,5 +126,72 @@ export const adapterFixtures: Record<string, AdapterFixture> = {
       shareText: minecraftlePage({ count: 2, outcome: "won" }).shareText,
     },
     spoilers: ["Diamond Axe"],
+  },
+  lewdle: {
+    now,
+    storageRequired: true,
+    unfinished: {
+      html: lewdleBoard(false),
+      storage: {
+        words: Array(6).fill(""),
+        highlights: Array(6).fill("BBBBBB"),
+        row: 0,
+        gameState: "normal",
+      },
+    },
+    complete: {
+      html: lewdleBoard(true),
+      storage: {
+        words: ["SHAFT", ...Array(5).fill("")],
+        highlights: ["GGGGGG", ...Array(5).fill("BBBBBB")],
+        row: 0,
+        gameState: "won",
+        easyOnSubmit: false,
+      },
+    },
+    expected: {
+      outcome: "won",
+      score: "1/6",
+      metrics: { guesses: 1, maxGuesses: 6, wordLength: 5, sheltered: 0 },
+      shareText:
+        "Lewdle 🍆💦 1746 1/6\n🟩🟩🟩🟩🟩\n\n\nlewdlegame.com\nBy SuperHappyFunTimes",
+    },
+    spoilers: ["SHAFT"],
+  },
+  angle: {
+    now,
+    storageRequired: true,
+    unfinished: {
+      html: '<div data-testid="round-steps"></div>',
+      storage: { guesses: { "2026-10-30": [{ value: 0, delta: -101 }] } },
+    },
+    complete: {
+      html: '<div data-testid="final-screen">Solved in 2/4 Angle #1592 · the angle was 101°</div>',
+      storage: {
+        guesses: {
+          "2026-10-30": [
+            { value: 0, delta: -101 },
+            { value: 101, delta: 0 },
+          ],
+        },
+        "angle.construct.daily": {
+          "2026-10-30": { attempts: [], skipped: true },
+        },
+      },
+    },
+    expected: {
+      outcome: "won",
+      score: "2/4",
+      metrics: {
+        guesses: 2,
+        maxGuesses: 4,
+        constructionAttempts: 0,
+        constructionSolved: 0,
+        constructionSkipped: 1,
+      },
+      shareText:
+        "#Angle #1592 2/4\n⬆️ ⬜⬜⬜⬜⬜\n🎉 🟩🟩🟩🟩🟩\nhttps://www.angle.wtf",
+    },
+    spoilers: ["101°"],
   },
 };

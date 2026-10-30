@@ -1,4 +1,6 @@
 import { minecraftle } from "./adapters/minecraftle";
+import { lewdle } from "./adapters/lewdle";
+import { angle } from "./adapters/angle";
 import type { Game } from "./types";
 import { wordle } from "./adapters/wordle";
 import { krillion } from "./adapters/krillion";
@@ -35,6 +37,21 @@ export const games: Game[] = [
     matches: ["https://minecraftle.zachmanson.com/*"],
     excludedQueryParams: ["random"],
     adapter: minecraftle,
+  },
+  {
+    id: "lewdle",
+    name: "Lewdle",
+    url: "https://www.lewdlegame.com/App",
+    matches: ["https://www.lewdlegame.com/*"],
+    adapter: lewdle,
+  },
+  {
+    id: "angle",
+    name: "Angle",
+    url: "https://angle.wtf/",
+    aliases: ["https://www.angle.wtf/"],
+    matches: ["https://angle.wtf/*", "https://www.angle.wtf/*"],
+    adapter: angle,
   },
 ];
 export function gameForURL(url?: string): Game | undefined {

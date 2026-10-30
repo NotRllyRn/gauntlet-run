@@ -46,6 +46,8 @@ for (const target of process.argv[2]
     setup(b) {
       b.onLoad({ filter: /\/src\/games\.ts$/ }, async (args) => ({
         contents: (await fs.readFile(args.path, "utf8"))
+          .replace("https://www.lewdlegame.com/App", origin + "/lewdle")
+          .replace('https://angle.wtf/"', origin + '/angle"')
           .replace('https://krillion.io/"', origin + '/krillion"')
           .replace(
             'https://minecraftle.zachmanson.com/"',
@@ -157,7 +159,7 @@ for (const target of process.argv[2]
       new Promise((_, reject) =>
         setTimeout(
           () => reject(new Error(`Browser test timeout: ${logs}`)),
-          55000,
+          35000 + Object.keys(browserFixtures).length * 9000,
         ).unref(),
       ),
     ]);
@@ -182,7 +184,7 @@ for (const target of process.argv[2]
       Object.keys(done.run.games).sort(),
       Object.keys(browserFixtures).sort(),
     );
-    for (const [id, { dimensions }] of Object.entries(browserFixtures)) {
+    for (const [id, { dimensions, bands }] of Object.entries(browserFixtures)) {
       const item = done.run.games[id];
       assert(item.result.shareText);
       assert(item.activeMs > 0);
@@ -190,6 +192,23 @@ for (const target of process.argv[2]
       const image = done.images[item.screenshotKey],
         png = PNG.sync.read(Buffer.from(image.split(",")[1], "base64"));
       assert.deepEqual([png.width, png.height], dimensions);
+      if (bands)
+        for (let band = 0; band < bands; band++) {
+          const pixel = ((band * 180 + 90) * png.width + 200) * 4;
+          assert.deepEqual(
+            [...png.data.subarray(pixel, pixel + 3)],
+            [20 + band * 20, 100, 150],
+            "Every guess must appear at full resolution, in order",
+          );
+        }
+      if (id === "lewdle") {
+        const center = (180 * png.width + 150) * 4;
+        assert.deepEqual(
+          [...png.data.subarray(center, center + 3)],
+          [0, 170, 0],
+          "Capture reveals the board behind the stats modal",
+        );
+      }
       let magenta = 0;
       for (let i = 0; i < png.data.length; i += 4)
         if (png.data[i] > 240 && png.data[i + 1] < 20 && png.data[i + 2] > 240)

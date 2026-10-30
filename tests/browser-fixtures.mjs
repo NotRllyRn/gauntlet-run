@@ -10,20 +10,34 @@ localStorage.setItem('krillion:stats:v1',JSON.stringify({history:{[day]:{dayNumb
 document.querySelector('.ds-root').innerHTML='<div class="result-panel"><div><span class="ds-done-krill">KRILLION</span><span>Dive #107 complete</span></div><div><span class="font-display">0</span><span>0m</span></div></div>';
 },1700);
 </script>`;
-export const minecraftle = `<!doctype html><style>body{margin:0;background:#ff00ff}#headlessui-dialog-panel-test{margin:30px auto;width:400px;height:300px;background:#ccc;color:#111}.slot{width:20px;height:20px}p{white-space:pre}</style><div id="guesses"><div class="box"><div>${'<div class="slot"></div>'.repeat(9)}</div></div></div><script>
+export const minecraftle = `<!doctype html><style>body{margin:0;background:#ff00ff}#guesses{margin:30px auto;width:400px}#guesses>.box{height:180px;background:#eee}#headlessui-dialog-panel-test{position:fixed;inset:0;background:#ff00ff;z-index:999}.slot{width:20px;height:20px}p{white-space:pre}</style><div id="guesses">${Array.from({ length: 10 }, (_, i) => `<div class="box" style="background:rgb(${20 + i * 20},100,150)"><div>${'<div class="slot"></div>'.repeat(9)}</div></div>`).join("")}</div><script>
 const d=new Date(),day=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 if(location.search.includes('finish'))setTimeout(()=>{
-const panel=document.createElement('div');panel.id='headlessui-dialog-panel-test';
-const title=document.createElement('h3');title.textContent='You won! Took 1 guesses.';
+const panel=document.createElement('div');panel.id='headlessui-dialog-panel-test';panel.setAttribute('role','dialog');
+const title=document.createElement('h3');title.textContent='You won! Took 10 guesses.';
 const solution=document.createElement('p');solution.id='headlessui-description-test';solution.textContent='Solution: Diamond Axe';
-const share=document.createElement('p');share.className='whitespace-pre';share.textContent='Minecraftle '+day+' 1/10\\n🟩🟩🟩\\n🟩🟩🟩\\n🟩🟩🟩';
+const share=document.createElement('p');share.className='whitespace-pre';share.textContent='Minecraftle '+day+' 10/10\\n'+Array(10).fill('🟩🟩🟩\\n🟩🟩🟩\\n🟩🟩🟩').join('\\n\\n');
 panel.append(solution,title,share);document.body.append(panel);
 },1700);
 </script>`;
 // One fixture entry opts a game into shared browser capture/result assertions.
 export const browserFixtures = {
-  minecraftle: { html: minecraftle, dimensions: [400, 300] },
+  minecraftle: { html: minecraftle, dimensions: [400, 1800], bands: 10 },
   wordle: { html: wordle, dimensions: [300, 360] },
   globle: { html: globle, dimensions: [400, 400] },
   krillion: { html: krillion, dimensions: [400, 180] },
+};
+
+browserFixtures.lewdle = {
+  dimensions: [300, 360],
+  html: `<!doctype html><style>body{margin:0}.testBoardWrapper{width:300px;height:360px;margin:30px auto;background:#00aa00}.testBoardRow{height:60px;display:flex}.testTile{width:60px}.testOverlayBG{position:fixed;inset:0;background:#ff00ff}</style><div class="testMain" style="opacity:0"><div class="testBoardWrapper">${Array.from({ length: 6 }, () => '<div class="testBoardRow">' + Array.from({ length: 6 }, (_, j) => '<div class="testTile" ' + (j === 5 ? 'style="opacity:0;width:0"' : "") + "></div>").join("") + "</div>").join("")}</div></div><script>
+localStorage.setItem('words',JSON.stringify(Array(6).fill('')));localStorage.setItem('highlights',JSON.stringify(Array(6).fill('BBBBBB')));localStorage.setItem('row','0');localStorage.setItem('gameState','"normal"');
+if(location.search.includes('finish'))setTimeout(()=>{localStorage.setItem('words',JSON.stringify(['SHAFT','','','','','']));localStorage.setItem('highlights',JSON.stringify(['GGGGGG',...Array(5).fill('BBBBBB')]));localStorage.setItem('gameState','"won"');document.querySelectorAll('.testBoardRow:first-child .testTile').forEach((e,i)=>e.textContent='SHAFT'[i]||'');const overlay=document.createElement('div');overlay.className='testOverlayBG';document.body.append(overlay)},1700)</script>`,
+};
+browserFixtures.angle = {
+  dimensions: [400, 180],
+  html: `<!doctype html><style>body{margin:0;background:#ff00ff}[data-testid=final-screen]{margin:30px auto;width:400px;height:180px;background:#103040;color:white}</style><div data-testid="round-steps"></div><script>
+const d=new Date(),day=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'),number=Math.round((Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())-Date.UTC(2022,5,21))/86400000);
+localStorage.setItem('guesses',JSON.stringify({[day]:[{value:0,delta:-101}]}));
+if(location.search.includes('finish'))setTimeout(()=>{localStorage.setItem('guesses',JSON.stringify({[day]:[{value:0,delta:-101},{value:101,delta:0}]}));localStorage.setItem('angle.construct.daily',JSON.stringify({[day]:{attempts:[],skipped:true}}));document.body.insertAdjacentHTML('beforeend','<div data-testid="final-screen">Solved in 2/4 Angle #'+number+' · the angle was 101°</div>')},1700)</script>`,
 };
