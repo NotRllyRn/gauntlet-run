@@ -87,7 +87,7 @@ for (const target of process.argv[2]
   await fs.writeFile(`${dir}/manifest.json`, JSON.stringify(manifest));
   await fs.writeFile(
     `${dir}/test-controller.html`,
-    '<!doctype html><script src="test-origin.js"></script><script src="test-controller.js"></script>',
+    '<!doctype html><meta charset="utf-8"><script src="test-origin.js"></script><script src="test-controller.js"></script>',
   );
   await fs.writeFile(
     `${dir}/test-origin.js`,

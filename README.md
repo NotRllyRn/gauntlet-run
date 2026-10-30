@@ -11,6 +11,12 @@ A **TypeScript browser extension** for playing ten daily games in one resumable 
 - After saving a result screenshot, the extension opens the next unfinished game. Results remain saved if you switch away before the screenshot can be taken; return to that game to finish capture.
 - The toolbar popup provides switching and pause/resume. The dashboard provides lineup, history, and exports.
 
+## Gauntlet score
+
+The popup and dashboard show points from completed native share results, alongside the timers. Defaults are 1000 points per game and a 10000-point run maximum. Unplayed/excluded games score zero; incomplete totals are provisional. The copy-summary button includes the score and all ten canonical game slots.
+
+Formulas, correction scale, and weights live in `src/scoring.ts`. New runs save their settings for consistent results after resuming. See [scoring rules](docs/scoring.md) for formulas and share-only limitations.
+
 ## Two timers
 
 **Total time** counts elapsed time while the run is running, including loading, research tabs, and other apps. Explicit pauses and browser downtime after recovery are excluded. It stops when every selected game has a detected result, rather than waiting for screenshot processing.
@@ -52,9 +58,9 @@ Wordle may show its own Play, ads, help, consent, or login screens. Dismiss thes
 
 ## Consistent sharing
 
-Share template **v6** always follows the canonical catalog order: **Wordle, Globle, Krillion, Minecraftle, Lewdle, Angle, Costcodle, Guess the Audio, GuessThe.Game, then Poople**. Actual play order, shuffle, and selection never rearrange the slots. Excluded games show `Not included`; unfinished games retain their slot and accumulated time.
+Share text template **v7** (image template **v6**) always follows the canonical catalog order: **Wordle, Globle, Krillion, Minecraftle, Lewdle, Angle, Costcodle, Guess the Audio, GuessThe.Game, then Poople**. Actual play order, shuffle, and selection never rearrange the slots. Excluded games show `Not included`; unfinished games retain their slot and accumulated time.
 
-- **Non-spoiler text:** date, run status, timing rules, total time, each outcome/score and focused game time. No answers, guesses, or boards.
+- **Non-spoiler text:** date, run status, total gauntlet score/max, timing rules, total time, each outcome/native score, weighted points and focused game time. No answers, guesses, or boards.
 - **Spoiler image:** explicit spoiler label, fixed-width panels, canonical order, normalized board crops. Missing captures are labeled. Its dimensions depend only on the supported catalog, never the run's selection/order.
 - **Full JSON:** actual suggested order, partial progress, timestamps, timings, results, and screenshots. This export contains spoilers.
 
@@ -73,6 +79,7 @@ TypeScript provides strict contracts and maintainability; it compiles to JavaScr
 - `src/capture.ts`: exposes the board, validates its rectangle, and restores the page.
 - `src/browser/screenshot.ts`: browser capture, tab validation, cropping, and full-height stitching.
 - `src/ui/`: shared popup/dashboard controls.
+- `src/scoring.ts`: pure share parsing, configurable scoring, and weighted totals.
 - `src/sharing.ts`: canonical text and image layouts driven by the catalog.
 - `src/games.ts`: the one registration point for games, URLs, and manifest matches.
 

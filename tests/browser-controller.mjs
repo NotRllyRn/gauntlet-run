@@ -193,7 +193,7 @@ async function main() {
       );
       assert(
         scoreRun(finished).unavailable.length === 0,
-        "Every browser fixture must be scorable",
+        `Every browser fixture must be scorable: ${scoreRun(finished).unavailable.join(", ")}`,
       );
       assert(scoreRun(finished).total > 0, "Completed run earns points");
       const frame = document.createElement("iframe");
