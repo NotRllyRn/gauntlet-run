@@ -68,6 +68,7 @@ function renderShare(): void {
   element("summary").textContent = run
     ? summary(run)
     : "Start a run to save results.";
+  void renderResults(run);
   for (const id of ["copy", "image", "json"])
     element<HTMLButtonElement>(id).disabled = !run;
 }
@@ -137,9 +138,11 @@ async function refresh(): Promise<void> {
   element<HTMLButtonElement>("stop").disabled = !running;
   renderRun(active);
   renderShare();
+}
+async function renderResults(run: Run | undefined): Promise<void> {
   const signature = JSON.stringify(
-    active &&
-      Object.entries(active.games).map(([id, item]) => [
+    run &&
+      Object.entries(run.games).map(([id, item]) => [
         id,
         item.result,
         item.screenshotKey,
@@ -148,10 +151,11 @@ async function refresh(): Promise<void> {
   if (signature === resultSignature) return;
   resultSignature = signature;
   element("results").replaceChildren();
-  if (!active) return;
-  const images = await imagesFor(active);
+  if (!run) return;
+  const images = await imagesFor(run);
+  if (signature !== resultSignature) return;
   for (const game of games) {
-    const item = active.games[game.id];
+    const item = run.games[game.id];
     if (!item?.result) continue;
     const div = document.createElement("div");
     div.className = "result";
@@ -159,7 +163,10 @@ async function refresh(): Promise<void> {
     title.textContent = `${game.name}: ${item.result.score}`;
     const pre = document.createElement("pre");
     pre.textContent = item.result.shareText;
-    div.append(title, pre);
+    const copy = button(`Copy ${game.name} share result (no spoilers)`, () =>
+      navigator.clipboard.writeText(item.result!.shareText),
+    );
+    div.append(title, pre, copy);
     if (item.screenshotKey && images[item.screenshotKey]) {
       const details = document.createElement("details"),
         caption = document.createElement("summary");

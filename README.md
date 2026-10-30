@@ -58,6 +58,8 @@ Share template **v2** always follows the canonical catalog order: **Wordle, then
 - **Spoiler image:** explicit spoiler label, fixed-width panels, canonical order, normalized board crops. Missing captures are labeled. Its dimensions depend only on the supported catalog, never the run's selection/order.
 - **Full JSON:** actual suggested order, partial progress, timestamps, timings, results, and screenshots. This export contains spoilers.
 
+Each completed game saves its own non-spoiler `result.shareText`, separately from scores, spoiler data, and the combined summary. Saved results display this text with a per-game copy button for the selected current or historical run.
+
 Per-game share text is reconstructed from observed Wordle tiles/settings or Globle statistics. It does not read the clipboard or hidden answers. Wordle capture targets the six-row board; Globle capture targets the rendered globe canvas. The results overlay is temporarily hidden and restored, including on failure.
 
 ## Small modules, reusable adapter contract

@@ -137,3 +137,29 @@ test("Wordle respects current persisted hard mode and high-contrast/dark setting
   assert(s.shareText!.startsWith("Wordle 1,959 2/6*"));
   assert(s.shareText!.includes("⬛🟦🟧⬛⬛"));
 });
+
+test("Globle preserves the multiline non-spoiler share result", () => {
+  const w = globle();
+  w.localStorage.setItem(
+    "guesses",
+    JSON.stringify({
+      day: "2026-10-30",
+      countries: Array(12).fill("France"),
+    }),
+  );
+  w.localStorage.setItem(
+    "statistics",
+    JSON.stringify({
+      lastWin: now.toUTCString(),
+      usedGuesses: [12],
+      currentStreak: 1,
+      emojiGuesses: "⬜🟧🟥🟥🟧⬜⬜🟧\n🟥🟥🟥🟩",
+    }),
+  );
+  const result = globleAdapter.read(w.document, w.localStorage, now)!;
+  assert.equal(
+    result.shareText,
+    "🌎 Oct 30, 2026 🌍\n🔥 1 | Avg. Guesses: 12\n⬜🟧🟥🟥🟧⬜⬜🟧\n🟥🟥🟥🟩 = 12\n\nhttps://globle-game.com\n#globle",
+  );
+  assert(!result.shareText!.includes("France"));
+});
