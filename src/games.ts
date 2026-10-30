@@ -1,3 +1,6 @@
+import { poople } from "./adapters/poople";
+import { guessthegame } from "./adapters/guessthegame";
+import { guesstheaudio } from "./adapters/guesstheaudio";
 import { costcodle } from "./adapters/costcodle";
 import { minecraftle } from "./adapters/minecraftle";
 import { lewdle } from "./adapters/lewdle";
@@ -60,6 +63,27 @@ export const games: Game[] = [
     url: "https://costcodle.com/",
     matches: ["https://costcodle.com/*"],
     adapter: costcodle,
+  },
+  {
+    id: "guesstheaudio",
+    name: "Guess the Audio",
+    url: "https://guesstheaudio.com/",
+    matches: ["https://guesstheaudio.com/*"],
+    adapter: guesstheaudio,
+  },
+  {
+    id: "guessthegame",
+    name: "GuessThe.Game",
+    url: "https://guessthe.game/",
+    matches: ["https://guessthe.game/*"],
+    adapter: guessthegame,
+  },
+  {
+    id: "poople",
+    name: "Poople",
+    url: "https://pooplegame.com/",
+    matches: ["https://pooplegame.com/*"],
+    adapter: poople,
   },
 ];
 export function gameForURL(url?: string): Game | undefined {

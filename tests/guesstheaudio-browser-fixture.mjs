@@ -1,0 +1,5 @@
+export const dimensions = [400, 180];
+export const html = `<!doctype html><meta charset="utf-8"><style>body{margin:0;background:#ff00ff}.result{width:400px;height:180px;margin:30px auto;background:#103040;color:white}</style><div class="current-game"><div class="current-game-number"></div>${Array.from({ length: 6 }, (_, i) => `<button class="gamecube">${i + 1}</button>`).join("")}</div><script>
+const day=Math.ceil((Date.now()-new Date(2023,4,4).getTime())/86400000);document.querySelector('.current-game-number').textContent='Song #'+day;localStorage.setItem(day+'_gamestate','playing');
+if(location.search.includes('finish'))setTimeout(()=>{localStorage.setItem(day+'_gamestate','win');localStorage.setItem(day+'_guess1','TiK ToK');localStorage.setItem(day+'_guess1_f','false');document.querySelector('.gamecube').classList.add('guess-image-success');document.querySelector('.current-game').insertAdjacentHTML('beforeend','<div class="result"><h2 class="win-msg">You Nailed it!</h2><div class="answer">TiK ToK</div><button id="share-results-btn">Share Results</button></div>');},1700);
+</script>`;

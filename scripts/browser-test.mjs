@@ -48,6 +48,9 @@ for (const target of process.argv[2]
         contents: (await fs.readFile(args.path, "utf8"))
           .replace("https://www.lewdlegame.com/App", origin + "/lewdle")
           .replace('https://angle.wtf/"', origin + '/angle"')
+          .replace('https://guesstheaudio.com/"', origin + '/guesstheaudio"')
+          .replace('https://guessthe.game/"', origin + '/guessthegame"')
+          .replace('https://pooplegame.com/"', origin + '/poople"')
           .replace('https://costcodle.com/"', origin + '/costcodle"')
           .replace('https://krillion.io/"', origin + '/krillion"')
           .replace(

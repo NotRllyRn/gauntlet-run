@@ -6,10 +6,13 @@ import { newRun, observe } from "../src/run/engine";
 import { validObservation } from "../src/run/validation";
 import { summary } from "../src/sharing";
 import { adapterFixtures, type PageFixture } from "./adapter-fixtures";
-function fixturePage(fixture: PageFixture) {
+function fixturePage(fixture: PageFixture, rawStorage = false) {
   const window = new JSDOM(fixture.html, { url: "https://example.com" }).window;
   for (const [key, value] of Object.entries(fixture.storage))
-    window.localStorage.setItem(key, JSON.stringify(value));
+    window.localStorage.setItem(
+      key,
+      rawStorage ? String(value) : JSON.stringify(value),
+    );
   return window;
 }
 test("every registered game supplies shared regression fixtures", () => {
@@ -25,8 +28,8 @@ for (const game of games) {
       fixture,
       "Add the game's fixture; shared assertions run automatically.",
     );
-    const partial = fixturePage(fixture.unfinished),
-      complete = fixturePage(fixture.complete);
+    const partial = fixturePage(fixture.unfinished, fixture.rawStorage),
+      complete = fixturePage(fixture.complete, fixture.rawStorage);
     try {
       const before = game.adapter.read(
         partial.document,
