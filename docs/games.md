@@ -7,13 +7,13 @@ Ten-game target lineup. Planned entries are not enabled in the extension until t
 | Wordle          | https://www.nytimes.com/games/wordle/index.html | Supported | Board        |
 | Globle          | https://globle-game.com/game                    | Supported | Globe        |
 | Krillion        | https://krillion.io/                            | Supported | Result panel |
-| Minecraftle     | https://minecraftle.zachmanson.com/             | Supported | Result panel |
-| Lewdle          | https://www.lewdlegame.com/App                  | Planned   | To inspect   |
+| Minecraftle     | https://minecraftle.zachmanson.com/             | Supported | Full board   |
+| Lewdle          | https://www.lewdlegame.com/App                  | Supported | Board        |
 | Guess the Audio | https://guesstheaudio.com/                      | Planned   | To inspect   |
 | GuessThe.Game   | https://guessthe.game/                          | Planned   | To inspect   |
 | Poople          | https://pooplegame.com/                         | Planned   | To inspect   |
 | Costcodle       | https://costcodle.com/?utm_source               | Planned   | To inspect   |
-| Angle           | https://angle.wtf/                              | Planned   | To inspect   |
+| Angle           | https://angle.wtf/                              | Supported | Result panel |
 
 Each adapter supplies observed progress, completion, structured results, native-format non-spoiler share text, and capture selectors. The shared engine handles tabs, timers, persistence, and exports.
 

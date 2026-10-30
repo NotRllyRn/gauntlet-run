@@ -1,6 +1,6 @@
 # Gauntlet Run
 
-A **TypeScript browser extension** for playing daily Wordle, Globle, Krillion, and Minecraftle in one resumable gauntlet. Choose games, reorder or shuffle the suggested lineup, and switch whenever you want. Scores, share text, board screenshots, progress, and timers stay on your device.
+A **TypeScript browser extension** for playing daily Wordle, Globle, Krillion, Minecraftle, Lewdle, and Angle in one resumable gauntlet. Choose games, reorder or shuffle the suggested lineup, and switch whenever you want. Scores, share text, board screenshots, progress, and timers stay on your device.
 
 ## Play your way
 
@@ -52,7 +52,7 @@ Wordle may show its own Play, ads, help, consent, or login screens. Dismiss thes
 
 ## Consistent sharing
 
-Share template **v4** always follows the canonical catalog order: **Wordle, Globle, Krillion, then Minecraftle**. Actual play order, shuffle, and selection never rearrange the slots. Excluded games show `Not included`; unfinished games retain their slot and accumulated time.
+Share template **v5** always follows the canonical catalog order: **Wordle, Globle, Krillion, Minecraftle, Lewdle, then Angle**. Actual play order, shuffle, and selection never rearrange the slots. Excluded games show `Not included`; unfinished games retain their slot and accumulated time.
 
 - **Non-spoiler text:** date, run status, timing rules, total time, each outcome/score and focused game time. No answers, guesses, or boards.
 - **Spoiler image:** explicit spoiler label, fixed-width panels, canonical order, normalized board crops. Missing captures are labeled. Its dimensions depend only on the supported catalog, never the run's selection/order.
@@ -71,7 +71,7 @@ TypeScript provides strict contracts and maintainability; it compiles to JavaScr
 - `src/background.ts`: browser events, serialized commands, tab discovery, and capture coordination.
 - `src/adapters/`: only game-specific detection, progress extraction, and capture selectors.
 - `src/capture.ts`: exposes the board, validates its rectangle, and restores the page.
-- `src/browser/screenshot.ts`: browser capture, tab validation, and pixel cropping.
+- `src/browser/screenshot.ts`: browser capture, tab validation, cropping, and full-height stitching.
 - `src/ui/`: shared popup/dashboard controls.
 - `src/sharing.ts`: canonical text and image layouts driven by the catalog.
 - `src/games.ts`: the one registration point for games, URLs, and manifest matches.
@@ -108,13 +108,13 @@ Saved Krillion results contain `metrics.points`, `maxPoints` (700), `rounds` (7)
 
 The extension pause stops its own timers, not Krillion's round countdown. Use the game's own pause/menu controls as needed. Normalized gauntlet scoring remains deferred; raw numeric metrics and share text are retained for it.
 
-See [the ten-game roadmap](docs/games.md). Four games are implemented; six are planned. Fixture tests do not establish compatibility with every future site update or account configuration.
+See [the ten-game roadmap](docs/games.md). Six games are implemented; four are planned. Fixture tests do not establish compatibility with every future site update or account configuration.
 
 `node scripts/live-krillion-test.mjs` plays a zero-point daily dive in a disposable Chromium profile by letting each round expire (about four minutes), then compares saved share text with the site’s actual Copy result output and checks result capture. An optional storage JSON path reopens an already observed live result for repeat capture verification. Neither mode uses a player’s existing profile.
 
 ## Minecraftle daily support
 
-Minecraftle uses the shared engine without new run or storage logic. The adapter reads submitted crafting-grid progress and the visible completion dialog. It saves the native share text directly, numeric guess count/max guesses, win/loss, observed feedback grids, and the revealed solution in spoiler data. Capture targets the result panel with the solution recipe and outcome; long share grids may scroll inside that panel, while the full share text is always saved separately.
+Minecraftle uses the shared engine without new run or storage logic. The adapter reads submitted crafting-grid progress and the visible completion dialog. It saves the native share text directly, numeric guess count/max guesses, win/loss, observed feedback grids, and the revealed solution in spoiler data. Capture targets the entire submitted board, from first to last guess. The shared capture code scrolls and stitches native-resolution viewport images, hiding the result dialog temporarily and restoring it and the original scroll position afterward. It does not scale the page. The board must fit the viewport width; captures are limited to 30 slices.
 
 Only daily mode is tracked. Any `random` query parameter is excluded from both detection and game timing. Stats/help routes are also excluded. The game uses the browser's local calendar date.
 
@@ -123,3 +123,11 @@ Native loss shares say `10/10`, just like a tenth-guess win. The extension prese
 **Playable-board limitation:** the current Minecraftle site does not persist its crafting grids across reloads. Returning to a still-open tab resumes the board; reopening/reloading may reset it. The extension retains its observed progress, results, and timers but does not inject private site state to recreate the board. Leave the completion dialog open briefly for saving/capture; use Show Summary if capture is pending.
 
 `node scripts/live-minecraftle-test.mjs` verifies a live daily win, native Copy text equality, and saved result capture in a disposable Chromium profile. Its solution/recipe lookup is test-only and never bundled into the extension. Shared browser fixtures cover the installation pipeline in Chromium and Firefox; dedicated fixtures cover losses and high-contrast mode.
+
+## Lewdle and Angle
+
+Lewdle reads submitted letters and stored feedback, checks that they agree, and reconstructs the native non-spoiler share text, including hints, ghost tiles, and sheltered mode. Five- and six-letter boards are supported. Capture hides stats and temporarily restores the board opacity; all styles are restored afterward. The daily number follows the site's fixed epoch. Lewdle does not store a board date: stale-board reset is owned by the site, so completion requires DOM/storage agreement but cannot independently prove a stored board's date.
+
+Angle tracks the daily Guess round and waits for the optional Make round to finish or for the player to explicitly choose Results & share. Saved metrics retain round-two attempts, completion, and skip status. The share text includes the native round-two suffix when played. Capture preserves the final result panel. No hidden answer lookup is used by either production adapter.
+
+`node scripts/live-next-games-test.mjs` completes Lewdle and Angle in disposable Chromium profiles, checks saved share text against each native copy action, and saves screenshots under `research/`. Lewdle's answer lookup is confined to that test. Angle's live check uses four deliberate incorrect guesses and skips round two. Shared installation tests cover both browsers; unit fixtures cover win/loss, assistance, malformed state, and Angle round-two results.
