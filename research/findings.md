@@ -86,3 +86,13 @@ Live disposable Chromium evidence: Lewdle `1/6`, share `Lewdle 🍆💦 1746 1/6
 Validation: 46 unit/contract tests, TypeScript checks, build, Firefox manifest lint, and installed-extension tests in Chromium and Firefox. Fixtures cover progress, completion, malformed/stale data, exact share formatting, round-two branches, persistence, pause/resume, browser restart, tab reuse, arbitrary order, all-game screenshots, and canonical exports. These are checks of observed versions, not a promise that future third-party changes will preserve compatibility.
 
 A repeat live Lewdle run encountered a dynamically served overlay and correctly left the screenshot pending instead of saving an obstructed image; another run passed the native-share comparison, nonblank-image assertion, and style-restoration checks. Third-party ads can still require dismissal and Retry screenshot. Scores and share text remain saved in that case.
+
+## Ten-game lineup — 2026-10-30
+
+The final four adapters are Guess the Audio, GuessThe.Game, Poople, and Costcodle. Game-specific evidence and limitations are recorded in their `*-findings.md` files. Production adapters use submitted/revealed data; no bundled answer table or solving helper is accessed.
+
+All four disposable live Chromium checks produced actual locally saved results and PNG captures, with saved share text equal to native Copy/Share output. Audio and Game used six real skips (loss); Costcodle used six deliberately incorrect prices (loss); Poople used its test-only solver to obtain a path, then submitted every word through the keyboard (win). Poople's capture passed with normal animations after the shared capture helper was changed to hide unrelated overlays while preserving the selected result panel and its ancestors. The host needed Noto Color Emoji for legible emoji screenshots; nothing was added to production for font rendering.
+
+Final validation: 70 unit/contract tests passed, TypeScript and build passed, Firefox lint returned zero errors/warnings, and the full ten-game installed-extension suite passed in Chromium and Firefox. That suite verifies partial progress, tab reuse/manual navigation, research-time exclusion, pause/resume, actual browser close/reopen, all-game completion/capture, overlay exclusion, Minecraftle's full-height stitching, and fixed-order exports. Native live equality covered the specific runs above; alternate outcomes/preferences are fixture-tested, not claims of exhaustive live verification.
+
+Share template v6 fixes all ten slots regardless of selection, shuffle, or completion order. Score normalization remains deferred; numeric metrics and native-format shares are retained.

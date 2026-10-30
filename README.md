@@ -1,6 +1,6 @@
 # Gauntlet Run
 
-A **TypeScript browser extension** for playing daily Wordle, Globle, Krillion, Minecraftle, Lewdle, and Angle in one resumable gauntlet. Choose games, reorder or shuffle the suggested lineup, and switch whenever you want. Scores, share text, board screenshots, progress, and timers stay on your device.
+A **TypeScript browser extension** for playing ten daily games in one resumable gauntlet. Choose games, reorder or shuffle the suggested lineup, and switch whenever you want. Scores, share text, board screenshots, progress, and timers stay on your device.
 
 ## Play your way
 
@@ -52,7 +52,7 @@ Wordle may show its own Play, ads, help, consent, or login screens. Dismiss thes
 
 ## Consistent sharing
 
-Share template **v5** always follows the canonical catalog order: **Wordle, Globle, Krillion, Minecraftle, Lewdle, then Angle**. Actual play order, shuffle, and selection never rearrange the slots. Excluded games show `Not included`; unfinished games retain their slot and accumulated time.
+Share template **v6** always follows the canonical catalog order: **Wordle, Globle, Krillion, Minecraftle, Lewdle, Angle, Costcodle, Guess the Audio, GuessThe.Game, then Poople**. Actual play order, shuffle, and selection never rearrange the slots. Excluded games show `Not included`; unfinished games retain their slot and accumulated time.
 
 - **Non-spoiler text:** date, run status, timing rules, total time, each outcome/score and focused game time. No answers, guesses, or boards.
 - **Spoiler image:** explicit spoiler label, fixed-width panels, canonical order, normalized board crops. Missing captures are labeled. Its dimensions depend only on the supported catalog, never the run's selection/order.
@@ -79,7 +79,7 @@ TypeScript provides strict contracts and maintainability; it compiles to JavaScr
 To add another game:
 
 1. Copy `templates/game-adapter.ts` into `src/adapters/`.
-2. Set `captureBackground: true` for a board crop with overlays hidden, or `false` with a `resultSelector` for a result-panel crop with overlays preserved. Implement its board selector, overlay selectors, and `read()` method. Return a stable puzzle ID, progress/checkpoint, and a complete result only after reliable completion evidence.
+2. Set `captureBackground: true` for a board crop with overlays hidden, or `false` with a `resultSelector` for a result-panel crop while preserving that panel; unrelated selected overlays are temporarily hidden. Implement its board selector, overlay selectors, and `read()` method. Return a stable puzzle ID, progress/checkpoint, and a complete result only after reliable completion evidence.
 3. Register it once in `src/games.ts`. Navigation, timing, saving, UI controls, manifest generation, and share panels are shared automatically.
 4. Add one entry to `tests/adapter-fixtures.ts` and `tests/browser-fixtures.mjs`. Shared contract tests run automatically for every registered game; the browser suite checks saved results, timing, and cropped images for each fixture. Add game-specific edge-case tests only where needed. Bump the sharing template version if changing the canonical catalog layout.
 
@@ -108,7 +108,7 @@ Saved Krillion results contain `metrics.points`, `maxPoints` (700), `rounds` (7)
 
 The extension pause stops its own timers, not Krillion's round countdown. Use the game's own pause/menu controls as needed. Normalized gauntlet scoring remains deferred; raw numeric metrics and share text are retained for it.
 
-See [the ten-game roadmap](docs/games.md). Six games are implemented; four are planned. Fixture tests do not establish compatibility with every future site update or account configuration.
+See [the ten-game roadmap](docs/games.md). All ten games are implemented. Fixture tests do not establish compatibility with every future site update or account configuration.
 
 `node scripts/live-krillion-test.mjs` plays a zero-point daily dive in a disposable Chromium profile by letting each round expire (about four minutes), then compares saved share text with the site’s actual Copy result output and checks result capture. An optional storage JSON path reopens an already observed live result for repeat capture verification. Neither mode uses a player’s existing profile.
 
@@ -131,3 +131,15 @@ Lewdle reads submitted letters and stored feedback, checks that they agree, and 
 Angle tracks the daily Guess round and waits for the optional Make round to finish or for the player to explicitly choose Results & share. Saved metrics retain round-two attempts, completion, and skip status. The share text includes the native round-two suffix when played. Capture preserves the final result panel. No hidden answer lookup is used by either production adapter.
 
 `node scripts/live-next-games-test.mjs` completes Lewdle and Angle in disposable Chromium profiles, checks saved share text against each native copy action, and saves screenshots under `research/`. Lewdle's answer lookup is confined to that test. Angle's live check uses four deliberate incorrect guesses and skips round two. Shared installation tests cover both browsers; unit fixtures cover win/loss, assistance, malformed state, and Angle round-two results.
+
+## Final four adapters
+
+Guess the Audio, GuessThe.Game, Poople, and Costcodle use the same completion, screenshot, timer, and storage pipeline as the original six games. Daily root pages are supported; archive/unlimited modes are excluded by catalog routing and puzzle-date checks.
+
+- Guess the Audio and GuessThe.Game save guess count, win/loss, native-format share text, and the revealed result panel. Share preferences are respected.
+- Poople saves the submitted word path, guesses used, optimal guesses (`par`), and extra guesses. It completes when the user reaches POOP; there is no fabricated loss state. The result card is captured.
+- Costcodle verifies stored feedback against the revealed price and visible rows. It saves guess count and win/loss publicly, with product, price, and submitted prices in spoiler data. Its capture contains the full product and guess history.
+
+Run `node scripts/live-GAME-test.mjs` with GAME equal to `guesstheaudio`, `guessthegame`, `poople`, or `costcodle` after building. These disposable live checks save `research/GAME-result.png` and `research/GAME-live-raw.json`, and compare saved shares with each site's native copy action. Deterministic per-game fixtures participate automatically in the shared Chrome/Firefox installation, restart, timing, capture, and export tests. Site changes or overlays may require refreshing an adapter or retrying capture; existing scores remain saved.
+
+Per-game research notes are in `research/*-findings.md`. Normalized scoring is intentionally deferred; all underlying results and share text are retained.
