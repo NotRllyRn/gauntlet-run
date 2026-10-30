@@ -3,6 +3,7 @@ let saved: {
   styles: [HTMLElement, string | null][];
   x: number;
   y: number;
+  target: Element;
 } | null = null;
 let watchdog: ReturnType<typeof setTimeout>;
 export let captureActive = false;
@@ -14,54 +15,28 @@ export const restoreCapture = () => {
     style === null
       ? el.removeAttribute("style")
       : el.setAttribute("style", style);
-  window.scrollTo(saved.x, saved.y);
+  window.scrollTo({ left: saved.x, top: saved.y, behavior: "instant" });
   saved = null;
 };
-export const prepareCapture = async (
-  adapter: Adapter,
-): Promise<CaptureRect> => {
-  restoreCapture();
-  const selector = adapter.captureBackground
-    ? adapter.boardSelector
-    : adapter.resultSelector;
-  if (!selector) throw new Error("Result capture requires a resultSelector.");
-  const target = document.querySelector(selector);
-  if (!target)
-    throw new Error("Capture target not found. The game may have changed.");
-  captureActive = true;
-  saved = { styles: [], x: scrollX, y: scrollY };
-  watchdog = setTimeout(restoreCapture, 10000);
-  const hide = (el: HTMLElement) => {
-    if (el === target || el.contains(target)) return;
-    saved!.styles.push([el, el.getAttribute("style")]);
-    el.style.setProperty("display", "none", "important");
-  };
-  if (adapter.captureBackground)
-    document.querySelectorAll<HTMLElement>(adapter.overlays).forEach(hide);
-  target.scrollIntoView({
-    block: "center",
-    inline: "center",
-    behavior: "instant",
-  });
-  await new Promise((r) => setTimeout(r, 250));
-  await new Promise<void>((r) =>
-    requestAnimationFrame(() => requestAnimationFrame(() => r())),
-  );
-  const rect = target.getBoundingClientRect();
+function renewWatchdog() {
+  clearTimeout(watchdog);
+  watchdog = setTimeout(restoreCapture, 15000);
+}
+export function capturePosition(): CaptureRect {
+  if (!saved) throw new Error("Capture session expired. Retry capture.");
+  const rect = saved.target.getBoundingClientRect();
+  const y = Math.max(0, rect.y),
+    bottom = Math.min(innerHeight, rect.bottom);
   if (
     rect.width < 20 ||
     rect.height < 20 ||
     rect.x < -1 ||
-    rect.y < -1 ||
     rect.right > innerWidth + 1 ||
-    rect.bottom > innerHeight + 1
-  ) {
-    restoreCapture();
+    bottom - y < 1
+  )
     throw new Error(
-      "The full capture target must fit on screen. Maximize the game window or zoom out, then retry.",
+      "The board must fit the window width. Maximize the window and retry.",
     );
-  }
-  // Fail rather than save a result dialog, ad, or another overlay covering the board.
   for (const [fx, fy] of [
     [0.5, 0.5],
     [0.2, 0.2],
@@ -71,27 +46,76 @@ export const prepareCapture = async (
   ]) {
     const top = document.elementFromPoint(
       rect.x + rect.width * fx,
-      rect.y + rect.height * fy,
+      y + (bottom - y) * fy,
     );
     if (
       top &&
-      top !== target &&
-      !target.contains(top) &&
-      !top.contains(target)
-    ) {
-      restoreCapture();
+      top !== saved.target &&
+      !saved.target.contains(top) &&
+      !top.contains(saved.target)
+    )
       throw new Error(
-        "Something is covering the capture target. Close it and retry capture.",
+        "Something is covering the board. Close it and retry capture.",
       );
-    }
   }
   return {
     x: rect.x,
-    y: rect.y,
+    y,
     width: rect.width,
-    height: rect.height,
+    height: bottom - y,
+    offsetY: y - rect.y,
+    totalHeight: rect.height,
     viewportWidth: innerWidth,
     viewportHeight: innerHeight,
     href: location.href,
   };
-};
+}
+export async function captureSlice(offsetY = 0): Promise<CaptureRect> {
+  if (!saved || !Number.isFinite(offsetY) || offsetY < 0)
+    throw new Error("Invalid capture offset.");
+  renewWatchdog();
+  const rect = saved.target.getBoundingClientRect();
+  window.scrollTo({
+    left: scrollX,
+    top: scrollY + rect.y + offsetY,
+    behavior: "instant",
+  });
+  await new Promise((r) => setTimeout(r, 250));
+  await new Promise<void>((r) =>
+    requestAnimationFrame(() => requestAnimationFrame(() => r())),
+  );
+  return capturePosition();
+}
+export async function prepareCapture(adapter: Adapter): Promise<CaptureRect> {
+  restoreCapture();
+  const selector = adapter.captureBackground
+    ? adapter.boardSelector
+    : adapter.resultSelector;
+  if (!selector) throw new Error("Result capture requires a resultSelector.");
+  const target = document.querySelector(selector);
+  if (!target)
+    throw new Error("Capture target not found. The game may have changed.");
+  captureActive = true;
+  saved = { styles: [], x: scrollX, y: scrollY, target };
+  renewWatchdog();
+  if (adapter.captureBackground)
+    document.querySelectorAll<HTMLElement>(adapter.overlays).forEach((el) => {
+      if (el === target || el.contains(target)) return;
+      saved!.styles.push([el, el.getAttribute("style")]);
+      el.style.setProperty("display", "none", "important");
+    });
+  if (adapter.captureBackground && adapter.revealSelector)
+    document
+      .querySelectorAll<HTMLElement>(adapter.revealSelector)
+      .forEach((el) => {
+        saved!.styles.push([el, el.getAttribute("style")]);
+        el.style.setProperty("transition", "none", "important");
+        el.style.setProperty("opacity", "1", "important");
+      });
+  try {
+    return await captureSlice();
+  } catch (error) {
+    restoreCapture();
+    throw error;
+  }
+}

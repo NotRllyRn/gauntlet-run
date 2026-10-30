@@ -20,6 +20,7 @@ export interface Adapter {
   boardSelector: string;
   resultSelector?: string;
   overlays: string;
+  revealSelector?: string;
   read(document: Document, storage: Storage, now: Date): Observation | null;
 }
 export interface Game {
@@ -76,6 +77,8 @@ export interface Focus {
   tabId: number;
 }
 export interface CaptureRect {
+  offsetY: number;
+  totalHeight: number;
   x: number;
   y: number;
   width: number;

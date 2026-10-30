@@ -6,7 +6,7 @@ import type { Adapter } from "../src/types";
 
 test("background capture hides results; result capture preserves and targets them", async () => {
   const dom = new JSDOM(
-    '<div id="board"></div><div role="dialog" id="result">Score: 10</div>',
+    '<main style="opacity:0;transition:opacity 1s"><div id="board"></div></main><div role="dialog" id="result">Score: 10</div>',
   );
   const originals = new Map<string, PropertyDescriptor | undefined>();
   const globals = {
@@ -48,13 +48,19 @@ test("background capture hides results; result capture preserves and targets the
     boardSelector: "#board",
     resultSelector: "#result",
     overlays: '[role="dialog"]',
+    revealSelector: "main",
     read: () => null,
   };
   try {
     dom.window.document.elementFromPoint = () => board;
     assert.equal((await prepareCapture(adapter)).width, 300);
     assert.equal(result.style.display, "none");
+    assert.equal(dom.window.document.querySelector("main")!.style.opacity, "1");
     restoreCapture();
+    assert.equal(
+      dom.window.document.querySelector("main")!.getAttribute("style"),
+      "opacity:0;transition:opacity 1s",
+    );
     assert.equal(result.getAttribute("style"), null);
     dom.window.document.elementFromPoint = () => result;
     assert.equal(

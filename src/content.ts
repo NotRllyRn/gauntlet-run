@@ -1,17 +1,39 @@
 import { api } from "./browser/api";
 import { gameForURL } from "./games";
-import { captureActive, prepareCapture, restoreCapture } from "./capture";
+import {
+  captureActive,
+  prepareCapture,
+  restoreCapture,
+  captureSlice,
+  capturePosition,
+} from "./capture";
 import { errorMessage } from "./utils";
 {
   let busy = false;
   api.runtime.onMessage.addListener(
-    (message: { type?: string }, _sender, respond) => {
+    (message: { type?: string; offsetY?: number }, _sender, respond) => {
       const game = gameForURL(location.href);
       if (message.type === "prepareCapture" && game) {
         prepareCapture(game.adapter).then(
           (rect) => respond({ rect }),
           (error) => respond({ error: errorMessage(error) }),
         );
+        return true;
+      }
+      if (
+        message.type === "captureSlice" ||
+        message.type === "capturePosition"
+      ) {
+        Promise.resolve()
+          .then(() =>
+            message.type === "captureSlice"
+              ? captureSlice(message.offsetY)
+              : capturePosition(),
+          )
+          .then(
+            (rect) => respond({ rect }),
+            (error) => respond({ error: errorMessage(error) }),
+          );
         return true;
       }
       if (message.type === "restoreCapture") {

@@ -3,10 +3,10 @@ import { localDay } from "../utils";
 
 const resultSelector = '[id^="headlessui-dialog-panel"]';
 export const minecraftle: Adapter = {
-  captureBackground: false,
+  captureBackground: true,
   boardSelector: "#guesses",
   resultSelector,
-  overlays: '[role="dialog"]',
+  overlays: '[role="dialog"], #headlessui-portal-root',
   read(doc, _storage, now) {
     if (new URL(doc.URL).searchParams.has("random")) return null;
     const boards = [...doc.querySelectorAll("#guesses > .box")];
