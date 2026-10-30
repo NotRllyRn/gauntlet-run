@@ -1,4 +1,5 @@
 // Bundled into a test-only extension page, never into release builds.
+import { games } from "../src/games.ts";
 import { spoilerImage, summary } from "../src/sharing.ts";
 const api = globalThis.browser || chrome;
 const origin = globalThis.TEST_ORIGIN;
@@ -26,7 +27,17 @@ async function main() {
   try {
     const { testPhase } = await api.storage.local.get("testPhase");
     if (testPhase !== "second") {
-      await send({ type: "start", ids: ["wordle", "globle"], random: false });
+      await send({
+        type: "start",
+        ids: [
+          "wordle",
+          ...games
+            .filter((g) => !["wordle", "globle"].includes(g.id))
+            .map((g) => g.id),
+          "globle",
+        ],
+        random: false,
+      });
       await until(
         (r) =>
           r?.games.wordle.progress === 3 && r.games.wordle.activeMs >= 1500,
@@ -147,9 +158,37 @@ async function main() {
         url: origin + "/wordle?finish=1",
         active: true,
       });
-      const finished = await until(
-        (r) => r.status === "complete" && r.games.wordle.screenshotKey,
+      await until(
+        (r) => r.games.wordle.screenshotKey,
         "Wordle completion and screenshot",
+      );
+      // Further games use the same completion/capture test flow.
+      for (const game of games.filter(
+        (g) => !["wordle", "globle"].includes(g.id),
+      )) {
+        await until(
+          (r) => r.currentGameId === game.id,
+          "Auto advance to " + game.name,
+        );
+        await until(
+          (r) => r.games[game.id].seen,
+          game.name + " partial progress",
+        );
+        const tab = (
+          await api.tabs.query({ active: true, currentWindow: true })
+        )[0];
+        await api.tabs.update(tab.id, {
+          url: origin + "/" + game.id + "?finish=1",
+          active: true,
+        });
+        await until(
+          (r) => r.games[game.id].screenshotKey,
+          game.name + " result capture",
+        );
+      }
+      const finished = await until(
+        (r) => r.status === "complete",
+        "All games complete",
       );
       const images = await api.storage.local.get(
         Object.values(finished.games).map((g) => g.screenshotKey),

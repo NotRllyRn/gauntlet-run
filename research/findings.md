@@ -41,3 +41,20 @@ Live-site gameplay was exercised in Chromium; Firefox's extension APIs and pipel
 The v0.2 installed-extension regression suite additionally exercises partial Wordle progress, manually opened Globle tabs (including homepage SPA navigation), research-tab exclusion from game time, unfinished-tab reuse and closed-tab replacement, pause/resume, actual browser shutdown/relaunch with saved profiles, and completion in reverse order. Canonical exports retain catalog order. The live Chromium workflow was rerun successfully after the rewrite; the board images in this directory were regenerated from that run.
 
 Timing recovery uses the last durable checkpoint and resumes paused. It does not restore expired daily puzzles or rewrite third-party site storage. See the README for timing intervals and recovery limits.
+
+## Krillion daily integration — 2026-10-30
+
+- Daily root: https://krillion.io/. Archive, Unlimited, packs, and Party are excluded.
+- `krillion:game:v1` holds date, dive number, phase, and round results. Completion clears it and records `krillion:stats:v1.history[date]`.
+- Signed-in storage is namespaced as `krillion:account:<encoded-owner>:<base-key>`, with the owner from `krillion:account-owner:v1`. Account behavior is fixture-tested, not live login-tested.
+- The game resets on America/New_York calendar days. Each daily dive has seven rounds, maximum 700 points, with depth equal to points × 10.
+- Tiers: miss 0/⬛, plankton 10/🫧, tooclever 15/🤡, schooler 30/🐟, rare 60/🦑, deepcut 85/🏮, krillion 100/🌟.
+- Native format: `Krillion #<dive> 🦐`, newline, numeric score, blank line, seven emoji. `krillion-share-link=1` appends a blank line and `https://krillion.io`.
+- Result capture targets `div:has(> div > .ds-done-krill)`, the summary containing dive number, points, depth, and distribution/percentile. It preserves the result UI.
+- Detection requires the current daily history record, seven valid round scores/tiers, and matching visible dive number and score. Revised site scores that disagree with stored statistics are not accepted.
+
+REA CLI analysis of the three selected shipped application chunks (`0snero216p82g.js`, `1klevf566y93_.js`, `2_ns9yberwasa.js`) returned evidence `ev_b07a4d8a0651805441e01a028e2646ffa22c2fd7464f61655369f6530c5ad908`, artifact-root SHA-256 `dff99e36e14c05b16468fefac7c5bf3e14a989c6634f78fc65a50fb56fec798d`. Focused reads established storage, tiers, timezone, and sharing. This static evidence is separate from the runtime checks below.
+
+A disposable live Chromium session completed dive #107 by allowing all seven rounds to expire naturally. The adapter read the resulting real DOM/storage and reconstructed exactly the native copied text: score 0 and seven black squares. An installed extension in another disposable Chromium profile reopened that observed result, saved numeric metrics and the native-format share text, and captured the result panel. The saved image was visually inspected. All nonzero tiers are covered by fixtures, not a live high-score run.
+
+The shared Chrome/Firefox browser suite now includes all three games: partial progress, tab reuse, research-time exclusion, pause/resume, real browser restart, out-of-order completion, local result/image persistence, and canonical exports. For Krillion the surrounding gameplay fixture is magenta and must be absent from the result crop; Wordle/Globle's magenta result overlays must likewise be absent from their board crops.

@@ -1,11 +1,11 @@
 # Gauntlet Run
 
-A **TypeScript browser extension** for playing daily Wordle and Globle in one resumable gauntlet. Choose games, reorder or shuffle the suggested lineup, and switch whenever you want. Scores, share text, board screenshots, progress, and timers stay on your device.
+A **TypeScript browser extension** for playing daily Wordle, Globle, and Krillion in one resumable gauntlet. Choose games, reorder or shuffle the suggested lineup, and switch whenever you want. Scores, share text, board screenshots, progress, and timers stay on your device.
 
 ## Play your way
 
 - **Next game** and direct game buttons focus the most recently accessed existing tab for an unfinished game, including tabs in another window. If no matching tab remains, they open a new one.
-- Open either supported website yourself: the extension automatically associates it with your active run, provided that game was selected.
+- Open a supported website yourself: the extension automatically associates it with your active run, provided that game was selected.
 - Return to a game later. Its focused time accumulates across visits and tabs; it is never counted twice.
 - Completion is detected independently for each game. Finish Globle first even if Wordle was first in the lineup.
 - After saving a result screenshot, the extension opens the next unfinished game. Results remain saved if you switch away before the screenshot can be taken; return to that game to finish capture.
@@ -52,7 +52,7 @@ Wordle may show its own Play, ads, help, consent, or login screens. Dismiss thes
 
 ## Consistent sharing
 
-Share template **v2** always follows the canonical catalog order: **Wordle, then Globle**. Actual play order, shuffle, and selection never rearrange the slots. Excluded games show `Not included`; unfinished games retain their slot and accumulated time.
+Share template **v3** always follows the canonical catalog order: **Wordle, Globle, then Krillion**. Actual play order, shuffle, and selection never rearrange the slots. Excluded games show `Not included`; unfinished games retain their slot and accumulated time.
 
 - **Non-spoiler text:** date, run status, timing rules, total time, each outcome/score and focused game time. No answers, guesses, or boards.
 - **Spoiler image:** explicit spoiler label, fixed-width panels, canonical order, normalized board crops. Missing captures are labeled. Its dimensions depend only on the supported catalog, never the run's selection/order.
@@ -60,7 +60,7 @@ Share template **v2** always follows the canonical catalog order: **Wordle, then
 
 Each completed game saves its own non-spoiler `result.shareText`, separately from scores, spoiler data, and the combined summary. Saved results display this text with a per-game copy button for the selected current or historical run.
 
-Per-game share text is reconstructed from observed Wordle tiles/settings or Globle statistics. It does not read the clipboard or hidden answers. Wordle capture targets the six-row board; Globle capture targets the rendered globe canvas. The results overlay is temporarily hidden and restored, including on failure.
+Per-game share text is reconstructed from observed Wordle tiles/settings or Globle statistics. It does not read the clipboard or hidden answers. Wordle capture targets the six-row board; Globle capture targets the rendered globe canvas. Krillion captures the daily result summary (points/depth), preserving the result panel rather than hiding it. The results overlay is temporarily hidden and restored, including on failure.
 
 ## Small modules, reusable adapter contract
 
@@ -81,7 +81,7 @@ To add another game:
 1. Copy `templates/game-adapter.ts` into `src/adapters/`.
 2. Set `captureBackground: true` for a board crop with overlays hidden, or `false` with a `resultSelector` for a result-panel crop with overlays preserved. Implement its board selector, overlay selectors, and `read()` method. Return a stable puzzle ID, progress/checkpoint, and a complete result only after reliable completion evidence.
 3. Register it once in `src/games.ts`. Navigation, timing, saving, UI controls, manifest generation, and share panels are shared automatically.
-4. Add adapter fixtures/tests. Bump the sharing template version if changing the canonical catalog layout.
+4. Add one entry to `tests/adapter-fixtures.ts` and `tests/browser-fixtures.mjs`. Shared contract tests run automatically for every registered game; the browser suite checks saved results, timing, and cropped images for each fixture. Add game-specific edge-case tests only where needed. Bump the sharing template version if changing the canonical catalog layout.
 
 ## Verification
 
@@ -99,3 +99,15 @@ The installed-extension browser test performs actual close/reopen cycles in disp
 `node scripts/live-extension-test.mjs` checks the real websites in an isolated Chromium profile. It intentionally completes today's games in that profile. Its test-only Globle answer lookup is not shipped. Live pages may change or show anti-automation screens; deterministic fixtures form the regression suite.
 
 See `research/findings.md` for the original live evidence and limitations.
+
+## Krillion and planned games
+
+Krillion support covers the **daily dive at the root URL**, not Archive, Unlimited, packs, or Puffer Party. It reads current-account local progress/statistics and requires the displayed daily result to agree with seven persisted rounds. It uses the site's America/New_York reset date. A zero-point dive is still `completed`; it is not classified as a win or loss.
+
+Saved Krillion results contain `metrics.points`, `maxPoints` (700), `rounds` (7), and `depthMeters`, along with native-format share text, per-round spoiler data, and a result-summary screenshot. The optional share-link preference is respected. No answer list or clipboard read is needed. If the site revises tiers so displayed points disagree with saved statistics, completion is withheld rather than saving inconsistent results.
+
+The extension pause stops its own timers, not Krillion's round countdown. Use the game's own pause/menu controls as needed. Normalized gauntlet scoring remains deferred; raw numeric metrics and share text are retained for it.
+
+See [the ten-game roadmap](docs/games.md). Three games are implemented; seven are planned. Fixture tests do not establish compatibility with every future site update or account configuration.
+
+`node scripts/live-krillion-test.mjs` plays a zero-point daily dive in a disposable Chromium profile by letting each round expire (about four minutes), then compares saved share text with the site’s actual Copy result output and checks result capture. An optional storage JSON path reopens an already observed live result for repeat capture verification. Neither mode uses a player’s existing profile.

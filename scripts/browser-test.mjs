@@ -7,7 +7,7 @@ import path from "node:path";
 import os from "node:os";
 import assert from "node:assert/strict";
 import { PNG } from "pngjs";
-import { wordle, globle } from "../tests/browser-fixtures.mjs";
+import { browserFixtures } from "../tests/browser-fixtures.mjs";
 for (const target of process.argv[2]
   ? [process.argv[2]]
   : ["chrome", "firefox"]) {
@@ -28,14 +28,12 @@ for (const target of process.argv[2]
       return;
     }
     res.setHeader("Content-Type", "text/html; charset=utf-8");
+    const fixture = browserFixtures[req.url.split("?")[0].slice(1)];
     res.end(
-      req.url.startsWith("/wordle")
-        ? wordle
-        : req.url.startsWith("/globle")
-          ? globle
-          : req.url === "/"
-            ? '<!doctype html><title>Globle home</title><script>setTimeout(()=>history.pushState({},"","/globle"),1000)</script>'
-            : "<!doctype html><title>Research tab</title><h1>Research</h1>",
+      fixture?.html ??
+        (req.url === "/"
+          ? '<!doctype html><title>Globle home</title><script>setTimeout(()=>history.pushState({},"","/globle"),1000)</script>'
+          : "<!doctype html><title>Research tab</title><h1>Research</h1>"),
     );
   });
   await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
@@ -48,6 +46,7 @@ for (const target of process.argv[2]
     setup(b) {
       b.onLoad({ filter: /\/src\/games\.ts$/ }, async (args) => ({
         contents: (await fs.readFile(args.path, "utf8"))
+          .replace('https://krillion.io/"', origin + '/krillion"')
           .replace(
             "https://www.nytimes.com/games/wordle/index.html",
             origin + "/wordle",
@@ -175,10 +174,11 @@ for (const target of process.argv[2]
     await launch();
     const done = await wait(pending);
     assert.equal(done.phase, "complete");
-    for (const [id, dimensions] of [
-      ["wordle", [300, 360]],
-      ["globle", [400, 400]],
-    ]) {
+    assert.deepEqual(
+      Object.keys(done.run.games).sort(),
+      Object.keys(browserFixtures).sort(),
+    );
+    for (const [id, { dimensions }] of Object.entries(browserFixtures)) {
       const item = done.run.games[id];
       assert(item.result.shareText);
       assert(item.activeMs > 0);
@@ -190,14 +190,18 @@ for (const target of process.argv[2]
       for (let i = 0; i < png.data.length; i += 4)
         if (png.data[i] > 240 && png.data[i + 1] < 20 && png.data[i + 2] > 240)
           magenta++;
-      assert.equal(magenta, 0, "Result overlay must be absent");
+      assert.equal(
+        magenta,
+        0,
+        "Capture must exclude the magenta overlay/background",
+      );
     }
     assert(done.summary.indexOf("Wordle:") < done.summary.indexOf("Globle:"));
     assert(!done.summary.includes("France"));
     const share = PNG.sync.read(
       Buffer.from(done.shareImage.split(",")[1], "base64"),
     );
-    assert.deepEqual([share.width, share.height], [1200, 850]);
+    assert.deepEqual([share.width, share.height], [1200, 1500]);
     console.log(
       `PASS ${target}: partial progress, manual tabs, Next, research exclusion, pause/resume, actual browser restart, reverse-order completion, clean captures, canonical exports.`,
     );

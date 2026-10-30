@@ -12,7 +12,11 @@ test("daily routes and home aliases match without accepting other games or origi
     gameForURL("https://www.nytimes.com/games/wordle/")?.id,
     "wordle",
   );
+  assert.equal(gameForURL("https://krillion.io/")?.id, "krillion");
   for (const url of [
+    "https://krillion.io/archive",
+    "https://krillion.io/unlimited/classic",
+    "https://krillion.io/party",
     "https://globle-game.com/practice",
     "https://www.nytimes.com/games/connections",
     "https://example.com/game",
