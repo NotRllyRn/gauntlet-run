@@ -1,3 +1,4 @@
+import { costcodle } from "./adapters/costcodle";
 import { minecraftle } from "./adapters/minecraftle";
 import { lewdle } from "./adapters/lewdle";
 import { angle } from "./adapters/angle";
@@ -52,6 +53,13 @@ export const games: Game[] = [
     aliases: ["https://www.angle.wtf/"],
     matches: ["https://angle.wtf/*", "https://www.angle.wtf/*"],
     adapter: angle,
+  },
+  {
+    id: "costcodle",
+    name: "Costcodle",
+    url: "https://costcodle.com/",
+    matches: ["https://costcodle.com/*"],
+    adapter: costcodle,
   },
 ];
 export function gameForURL(url?: string): Game | undefined {

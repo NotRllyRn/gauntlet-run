@@ -1,3 +1,4 @@
+import { adapterFixture as costcodleFixture } from "./costcodle-fixture";
 import { minecraftlePage } from "./minecraftle-fixture";
 import type { Observation } from "../src/types";
 export interface PageFixture {
@@ -44,6 +45,7 @@ export const krillionPanel =
 const lewdleBoard = (done: boolean) =>
   `<div class="testBoardWrapper">${Array.from({ length: 6 }, (_, i) => `<div class="testBoardRow">${Array.from({ length: 6 }, (_, j) => `<div class="testTile" ${j === 5 ? 'style="opacity:0"' : ""}>${done && i === 0 && j < 5 ? "SHAFT"[j] : ""}</div>`).join("")}</div>`).join("")}</div>`;
 export const adapterFixtures: Record<string, AdapterFixture> = {
+  costcodle: costcodleFixture,
   wordle: {
     storageRequired: false,
     now,
