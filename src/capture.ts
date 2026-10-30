@@ -98,7 +98,7 @@ export async function prepareCapture(adapter: Adapter): Promise<CaptureRect> {
   captureActive = true;
   saved = { styles: [], x: scrollX, y: scrollY, target };
   renewWatchdog();
-  if (adapter.captureBackground)
+  if (adapter.overlays)
     document.querySelectorAll<HTMLElement>(adapter.overlays).forEach((el) => {
       if (el === target || el.contains(target)) return;
       saved!.styles.push([el, el.getAttribute("style")]);

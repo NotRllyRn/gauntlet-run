@@ -6,6 +6,7 @@ export const example: Adapter = {
   // Set false and provide resultSelector to capture the result panel instead.
   boardSelector: "[data-game-board]",
   // resultSelector: "[data-game-results]",
+  // Matching overlays are hidden except the capture target and its ancestors.
   overlays: '[role="dialog"]',
   read(document, _storage, now) {
     const board = document.querySelector<HTMLElement>("[data-game-board]");
