@@ -48,6 +48,10 @@ for (const target of process.argv[2]
         contents: (await fs.readFile(args.path, "utf8"))
           .replace('https://krillion.io/"', origin + '/krillion"')
           .replace(
+            'https://minecraftle.zachmanson.com/"',
+            origin + '/minecraftle"',
+          )
+          .replace(
             "https://www.nytimes.com/games/wordle/index.html",
             origin + "/wordle",
           )
@@ -201,7 +205,10 @@ for (const target of process.argv[2]
     const share = PNG.sync.read(
       Buffer.from(done.shareImage.split(",")[1], "base64"),
     );
-    assert.deepEqual([share.width, share.height], [1200, 1500]);
+    assert.deepEqual(
+      [share.width, share.height],
+      [1200, 200 + Math.ceil(Object.keys(browserFixtures).length / 2) * 650],
+    );
     console.log(
       `PASS ${target}: partial progress, manual tabs, Next, research exclusion, pause/resume, actual browser restart, reverse-order completion, clean captures, canonical exports.`,
     );

@@ -13,7 +13,14 @@ test("daily routes and home aliases match without accepting other games or origi
     "wordle",
   );
   assert.equal(gameForURL("https://krillion.io/")?.id, "krillion");
+  assert.equal(
+    gameForURL("https://minecraftle.zachmanson.com/?utm_source=test")?.id,
+    "minecraftle",
+  );
   for (const url of [
+    "https://minecraftle.zachmanson.com/?random=true",
+    "https://minecraftle.zachmanson.com/?random=",
+    "https://minecraftle.zachmanson.com/stats",
     "https://krillion.io/archive",
     "https://krillion.io/unlimited/classic",
     "https://krillion.io/party",

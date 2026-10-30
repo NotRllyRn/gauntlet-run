@@ -1,3 +1,4 @@
+import { minecraftlePage } from "./minecraftle-fixture";
 import type { Observation } from "../src/types";
 export interface PageFixture {
   html: string;
@@ -107,5 +108,21 @@ export const adapterFixtures: Record<string, AdapterFixture> = {
       shareText: "Krillion #107 🦐\n300\n\n🫧🤡🐟🦑🏮🌟⬛",
     },
     spoilers: ["Secret answer", "Secret prompt"],
+  },
+  minecraftle: {
+    storageRequired: false,
+    now,
+    unfinished: { html: minecraftlePage({ count: 2 }).html, storage: {} },
+    complete: {
+      html: minecraftlePage({ count: 2, outcome: "won" }).html,
+      storage: {},
+    },
+    expected: {
+      outcome: "won",
+      score: "2/10",
+      metrics: { guesses: 2, maxGuesses: 10 },
+      shareText: minecraftlePage({ count: 2, outcome: "won" }).shareText,
+    },
+    spoilers: ["Diamond Axe"],
   },
 };

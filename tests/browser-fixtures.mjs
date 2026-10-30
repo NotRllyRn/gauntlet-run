@@ -10,8 +10,19 @@ localStorage.setItem('krillion:stats:v1',JSON.stringify({history:{[day]:{dayNumb
 document.querySelector('.ds-root').innerHTML='<div class="result-panel"><div><span class="ds-done-krill">KRILLION</span><span>Dive #107 complete</span></div><div><span class="font-display">0</span><span>0m</span></div></div>';
 },1700);
 </script>`;
+export const minecraftle = `<!doctype html><style>body{margin:0;background:#ff00ff}#headlessui-dialog-panel-test{margin:30px auto;width:400px;height:300px;background:#ccc;color:#111}.slot{width:20px;height:20px}p{white-space:pre}</style><div id="guesses"><div class="box"><div>${'<div class="slot"></div>'.repeat(9)}</div></div></div><script>
+const d=new Date(),day=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+if(location.search.includes('finish'))setTimeout(()=>{
+const panel=document.createElement('div');panel.id='headlessui-dialog-panel-test';
+const title=document.createElement('h3');title.textContent='You won! Took 1 guesses.';
+const solution=document.createElement('p');solution.id='headlessui-description-test';solution.textContent='Solution: Diamond Axe';
+const share=document.createElement('p');share.className='whitespace-pre';share.textContent='Minecraftle '+day+' 1/10\\n🟩🟩🟩\\n🟩🟩🟩\\n🟩🟩🟩';
+panel.append(solution,title,share);document.body.append(panel);
+},1700);
+</script>`;
 // One fixture entry opts a game into shared browser capture/result assertions.
 export const browserFixtures = {
+  minecraftle: { html: minecraftle, dimensions: [400, 300] },
   wordle: { html: wordle, dimensions: [300, 360] },
   globle: { html: globle, dimensions: [400, 400] },
   krillion: { html: krillion, dimensions: [400, 180] },

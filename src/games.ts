@@ -1,3 +1,4 @@
+import { minecraftle } from "./adapters/minecraftle";
 import type { Game } from "./types";
 import { wordle } from "./adapters/wordle";
 import { krillion } from "./adapters/krillion";
@@ -27,20 +28,32 @@ export const games: Game[] = [
     matches: ["https://krillion.io/"],
     adapter: krillion,
   },
+  {
+    id: "minecraftle",
+    name: "Minecraftle",
+    url: "https://minecraftle.zachmanson.com/",
+    matches: ["https://minecraftle.zachmanson.com/*"],
+    excludedQueryParams: ["random"],
+    adapter: minecraftle,
+  },
 ];
 export function gameForURL(url?: string): Game | undefined {
   if (!url) return;
   try {
     const actual = new URL(url);
-    return games.find((g) =>
-      [g.url, ...(g.aliases ?? [])].some((url) => {
-        const expected = new URL(url);
-        return (
-          actual.origin === expected.origin &&
-          actual.pathname.replace(/\/$/, "") ===
-            expected.pathname.replace(/\/$/, "")
-        );
-      }),
+    return games.find(
+      (g) =>
+        !g.excludedQueryParams?.some((param) =>
+          actual.searchParams.has(param),
+        ) &&
+        [g.url, ...(g.aliases ?? [])].some((url) => {
+          const expected = new URL(url);
+          return (
+            actual.origin === expected.origin &&
+            actual.pathname.replace(/\/$/, "") ===
+              expected.pathname.replace(/\/$/, "")
+          );
+        }),
     );
   } catch {
     return;

@@ -1,25 +1,9 @@
 // Disposable Chromium profile only. Default: let all seven rounds expire naturally.
 // Optional saved storage JSON reopens a previously observed live result for capture checks.
-import { chromium } from "playwright";
 import fs from "node:fs/promises";
-import path from "node:path";
 import assert from "node:assert/strict";
-const dir = path.resolve("dist/test-krillion-live");
-await fs.rm(dir, { recursive: true, force: true });
-await fs.cp("dist/chrome", dir, { recursive: true });
-const manifest = JSON.parse(await fs.readFile(dir + "/manifest.json", "utf8"));
-manifest.host_permissions = ["<all_urls>"];
-await fs.writeFile(dir + "/manifest.json", JSON.stringify(manifest));
-const context = await chromium.launchPersistentContext("", {
-  headless: true,
-  channel: "chromium",
-  args: [
-    "--no-sandbox",
-    `--disable-extensions-except=${dir}`,
-    `--load-extension=${dir}`,
-  ],
-  viewport: { width: 1280, height: 1000 },
-});
+import { openLiveExtension, waitForSavedResult } from "./live-browser.mjs";
+const { context, dashboard, start } = await openLiveExtension("krillion");
 try {
   if (process.argv[2]) {
     const storage = JSON.parse(await fs.readFile(process.argv[2], "utf8"));
@@ -29,23 +13,7 @@ try {
           localStorage.setItem(key, value);
     }, storage);
   }
-  const worker =
-    context.serviceWorkers()[0] ??
-    (await context.waitForEvent("serviceworker"));
-  const id = new URL(worker.url()).hostname;
-  const dashboard = await context.newPage();
-  await dashboard.goto(`chrome-extension://${id}/dashboard.html`);
-  const opened = context.waitForEvent("page");
-  const start = await dashboard.evaluate(() =>
-    chrome.runtime.sendMessage({
-      type: "start",
-      ids: ["krillion"],
-      random: false,
-    }),
-  );
-  assert(!start.error, start.error);
-  const page = await opened;
-  await page.waitForLoadState("domcontentloaded");
+  const page = await start("krillion");
   if (!process.argv[2]) {
     await page
       .getByRole("button", { name: "▼ BEGIN DESCENT ▼" })
@@ -62,20 +30,7 @@ try {
   await page
     .getByRole("button", { name: "Copy result", exact: true })
     .waitFor({ timeout: 30000 });
-  let saved;
-  for (let attempt = 0; attempt < 60; attempt++) {
-    saved = await dashboard.evaluate(async () => {
-      const { activeRun } = await chrome.storage.local.get("activeRun");
-      const key = activeRun.games.krillion.screenshotKey;
-      return {
-        run: activeRun,
-        image: key ? (await chrome.storage.local.get(key))[key] : null,
-      };
-    });
-    if (saved.image && saved.run.games.krillion.result) break;
-    await page.waitForTimeout(500);
-  }
-  assert(saved.image, JSON.stringify(saved.run));
+  const saved = await waitForSavedResult(dashboard, "krillion");
   // Intercept only this disposable page's copy action to compare the site's actual text.
   await page.evaluate(() => {
     window.copiedResult = null;

@@ -28,6 +28,7 @@ export interface Game {
   url: string;
   matches: string[];
   aliases?: string[];
+  excludedQueryParams?: string[];
   adapter: Adapter;
 }
 export interface Result {
