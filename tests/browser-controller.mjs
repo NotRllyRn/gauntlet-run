@@ -57,12 +57,27 @@ async function main() {
       await send({ type: "next" });
       await sleep(900);
       assert(
-        (await api.tabs.query({})).length === count + 1,
-        "Next game must open a new tab",
+        (await api.tabs.query({})).length === count,
+        "Next game must reuse the unfinished tab",
       );
       assert(
         (await api.tabs.get(wordleTab.id)).url === origin + "/wordle",
         "Original Wordle tab must be preserved",
+      );
+      assert(
+        (await api.tabs.get(wordleTab.id)).active,
+        "Next activates the original Wordle tab",
+      );
+      await send({ type: "openGame", gameId: "wordle" });
+      assert(
+        (await api.tabs.query({})).length === count,
+        "Direct open reuses tab",
+      );
+      await api.tabs.remove(wordleTab.id);
+      await send({ type: "openGame", gameId: "wordle" });
+      assert(
+        (await api.tabs.query({})).length === count,
+        "Closed tab is recreated",
       );
       await send({ type: "pause" });
       const paused = await read();

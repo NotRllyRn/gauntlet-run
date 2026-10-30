@@ -21,9 +21,13 @@ export const prepareCapture = async (
   adapter: Adapter,
 ): Promise<CaptureRect> => {
   restoreCapture();
-  const target = document.querySelector(adapter.boardSelector);
+  const selector = adapter.captureBackground
+    ? adapter.boardSelector
+    : adapter.resultSelector;
+  if (!selector) throw new Error("Result capture requires a resultSelector.");
+  const target = document.querySelector(selector);
   if (!target)
-    throw new Error("Game board not found. The game may have changed.");
+    throw new Error("Capture target not found. The game may have changed.");
   captureActive = true;
   saved = { styles: [], x: scrollX, y: scrollY };
   watchdog = setTimeout(restoreCapture, 10000);
@@ -32,7 +36,8 @@ export const prepareCapture = async (
     saved!.styles.push([el, el.getAttribute("style")]);
     el.style.setProperty("display", "none", "important");
   };
-  document.querySelectorAll<HTMLElement>(adapter.overlays).forEach(hide);
+  if (adapter.captureBackground)
+    document.querySelectorAll<HTMLElement>(adapter.overlays).forEach(hide);
   target.scrollIntoView({
     block: "center",
     inline: "center",
@@ -53,7 +58,7 @@ export const prepareCapture = async (
   ) {
     restoreCapture();
     throw new Error(
-      "The full board must fit on screen. Maximize the game window or zoom out, then retry.",
+      "The full capture target must fit on screen. Maximize the game window or zoom out, then retry.",
     );
   }
   // Fail rather than save a result dialog, ad, or another overlay covering the board.
@@ -76,7 +81,7 @@ export const prepareCapture = async (
     ) {
       restoreCapture();
       throw new Error(
-        "Something is covering the game board. Close it and retry capture.",
+        "Something is covering the capture target. Close it and retry capture.",
       );
     }
   }

@@ -3,6 +3,7 @@ import { localDay, readJSON } from "../utils";
 const boardSelector =
   '#wordle-app-game [class*="Board-module_board__"], #wordle-app-game [data-testid="board"]';
 export const wordle: Adapter = {
+  captureBackground: true,
   boardSelector,
   overlays:
     'dialog[open], [data-testid="modal-overlay"], [class*="Modal-module_modalOverlay"], [class*="Toast-module_toast"]',

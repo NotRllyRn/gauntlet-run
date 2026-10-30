@@ -4,7 +4,7 @@ A **TypeScript browser extension** for playing daily Wordle and Globle in one re
 
 ## Play your way
 
-- **Next game** and **Open Wordle / Open Globle** open new tabs. Existing unfinished tabs are preserved.
+- **Next game** and direct game buttons focus the most recently accessed existing tab for an unfinished game, including tabs in another window. If no matching tab remains, they open a new one.
 - Open either supported website yourself: the extension automatically associates it with your active run, provided that game was selected.
 - Return to a game later. Its focused time accumulates across visits and tabs; it is never counted twice.
 - Completion is detected independently for each game. Finish Globle first even if Wordle was first in the lineup.
@@ -77,7 +77,7 @@ TypeScript provides strict contracts and maintainability; it compiles to JavaScr
 To add another game:
 
 1. Copy `templates/game-adapter.ts` into `src/adapters/`.
-2. Implement its board selector, overlay selectors, and `read()` method. Return a stable puzzle ID, progress/checkpoint, and a complete result only after reliable completion evidence.
+2. Set `captureBackground: true` for a board crop with overlays hidden, or `false` with a `resultSelector` for a result-panel crop with overlays preserved. Implement its board selector, overlay selectors, and `read()` method. Return a stable puzzle ID, progress/checkpoint, and a complete result only after reliable completion evidence.
 3. Register it once in `src/games.ts`. Navigation, timing, saving, UI controls, manifest generation, and share panels are shared automatically.
 4. Add adapter fixtures/tests. Bump the sharing template version if changing the canonical catalog layout.
 
@@ -92,7 +92,7 @@ npm run test:browser
 npx web-ext lint --source-dir dist/firefox
 ```
 
-The installed-extension browser test performs actual close/reopen cycles in disposable Chromium and Firefox profiles. It covers Wordle left at three guesses, manual Globle tabs, Next opening new tabs, research exclusion, pause/resume, saved recovery, reverse-order completion, clean screenshots, and canonical text/image exports. Test-only catalog URLs and reporting pages are bundled into `dist/test-*`, never the shipping ZIPs.
+The installed-extension browser test performs actual close/reopen cycles in disposable Chromium and Firefox profiles. It covers Wordle left at three guesses, manual Globle tabs, Next/direct buttons reusing unfinished tabs and recreating closed tabs, research exclusion, pause/resume, saved recovery, reverse-order completion, clean screenshots, and canonical text/image exports. Test-only catalog URLs and reporting pages are bundled into `dist/test-*`, never the shipping ZIPs.
 
 `node scripts/live-extension-test.mjs` checks the real websites in an isolated Chromium profile. It intentionally completes today's games in that profile. Its test-only Globle answer lookup is not shipped. Live pages may change or show anti-automation screens; deterministic fixtures form the regression suite.
 

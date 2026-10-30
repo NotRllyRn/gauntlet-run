@@ -14,7 +14,9 @@ export interface Observation {
   spoiler?: Json;
 }
 export interface Adapter {
+  captureBackground: boolean;
   boardSelector: string;
+  resultSelector?: string;
   overlays: string;
   read(document: Document, storage: Storage, now: Date): Observation | null;
 }

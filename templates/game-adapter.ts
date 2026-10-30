@@ -2,7 +2,10 @@ import type { Adapter } from "../src/types";
 import { localDay } from "../src/utils";
 /** Copy into src/adapters and register once in src/games.ts. No background/UI changes needed. */
 export const example: Adapter = {
+  captureBackground: true,
+  // Set false and provide resultSelector to capture the result panel instead.
   boardSelector: "[data-game-board]",
+  // resultSelector: "[data-game-results]",
   overlays: '[role="dialog"]',
   read(document, _storage, now) {
     const board = document.querySelector<HTMLElement>("[data-game-board]");

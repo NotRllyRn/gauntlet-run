@@ -1,6 +1,8 @@
 import type { Adapter } from "../types";
 import { localDay, readJSON } from "../utils";
 export const globle: Adapter = {
+  captureBackground: true,
+  // Set false and provide resultSelector to capture the result panel instead.
   boardSelector: ".scene-container canvas",
   // The current Globle statistics card is an absolutely positioned .m element.
   overlays:

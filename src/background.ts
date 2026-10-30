@@ -50,7 +50,21 @@ async function openGame(run: Run, id: string): Promise<void> {
   settle(run, Date.now());
   run.currentGameId = id;
   await saveRun(run);
-  // Never replace an existing game: unfinished tabs remain available to return to.
+  // Discover live tabs rather than persisting IDs that become stale after restart.
+  const existing = !run.games[id].result
+    ? (await api.tabs.query({}))
+        .filter((tab) => tab.id !== undefined && gameForURL(tab.url)?.id === id)
+        .sort((a, b) => (b.lastAccessed ?? 0) - (a.lastAccessed ?? 0))[0]
+    : undefined;
+  if (existing?.id !== undefined) {
+    try {
+      await api.tabs.update(existing.id, { active: true });
+      await api.windows.update(existing.windowId, { focused: true });
+      return;
+    } catch {
+      // The tab may have closed between discovery and activation.
+    }
+  }
   await api.tabs.create({ url: game.url, active: true });
 }
 async function captureResult(
