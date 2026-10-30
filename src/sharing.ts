@@ -3,7 +3,7 @@ import { games } from "./games";
 import { duration } from "./utils";
 export function summary(run: Run, catalog: Game[] = games): string {
   const lines = [
-    "GAUNTLET RUN · v2",
+    "GAUNTLET RUN · v3",
     `Date: ${new Date(run.createdAt).toISOString().slice(0, 10)}`,
     `Status: ${run.status}`,
     "Total excludes pauses; game times count focused game tabs only.",
@@ -30,7 +30,7 @@ export async function spoilerImage(
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.fillStyle = "#c4ef93";
   ctx.font = "bold 36px sans-serif";
-  ctx.fillText("GAUNTLET RUN · SPOILERS · v2", 40, 60);
+  ctx.fillText("GAUNTLET RUN · SPOILERS · v3", 40, 60);
   ctx.fillStyle = "#eef3ed";
   ctx.font = "20px sans-serif";
   ctx.fillText(

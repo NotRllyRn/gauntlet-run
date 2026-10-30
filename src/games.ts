@@ -1,5 +1,6 @@
 import type { Game } from "./types";
 import { wordle } from "./adapters/wordle";
+import { krillion } from "./adapters/krillion";
 import { globle } from "./adapters/globle";
 // Canonical order also controls share layouts. Adding a game requires one entry and one adapter.
 export const games: Game[] = [
@@ -18,6 +19,13 @@ export const games: Game[] = [
     matches: ["https://globle-game.com/*"],
     aliases: ["https://globle-game.com/"],
     adapter: globle,
+  },
+  {
+    id: "krillion",
+    name: "Krillion",
+    url: "https://krillion.io/",
+    matches: ["https://krillion.io/"],
+    adapter: krillion,
   },
 ];
 export function gameForURL(url?: string): Game | undefined {

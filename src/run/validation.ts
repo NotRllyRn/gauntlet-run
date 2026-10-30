@@ -11,8 +11,15 @@ export function validObservation(value: unknown): value is Observation {
     s.progress <= 10000 &&
     typeof s.complete === "boolean" &&
     JSON.stringify(s).length < 100000 &&
+    (s.metrics === undefined ||
+      (s.metrics !== null &&
+        typeof s.metrics === "object" &&
+        !Array.isArray(s.metrics) &&
+        Object.values(s.metrics).every(
+          (n) => typeof n === "number" && Number.isFinite(n),
+        ))) &&
     (!s.complete ||
-      (["won", "lost"].includes(s.outcome || "") &&
+      (["won", "lost", "completed"].includes(s.outcome || "") &&
         typeof s.score === "string" &&
         s.score.length < 100 &&
         typeof s.shareText === "string" &&

@@ -143,9 +143,10 @@ export function observe(run: Run, snapshot: Observation, now: number): boolean {
   item.result = {
     outcome: snapshot.outcome,
     score: snapshot.score,
-    guesses: snapshot.guesses ?? snapshot.progress,
+    ...(snapshot.guesses !== undefined ? { guesses: snapshot.guesses } : {}),
     shareText: snapshot.shareText,
     shareSource: snapshot.shareSource ?? "adapter",
+    ...(snapshot.metrics ? { metrics: { ...snapshot.metrics } } : {}),
     spoiler: snapshot.spoiler ?? null,
     completedAt: now,
     preexisting,

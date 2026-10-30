@@ -20,9 +20,11 @@ export const example: Adapter = {
       checkpoint: { guesses: progress },
       ...(complete
         ? {
+            // Use "completed" for points-based games without a win/loss.
             outcome: "won" as const,
             score: `${progress} guesses`,
             guesses: progress,
+            // metrics: { points: 100, maxPoints: 700 },
             shareText: `Example: ${progress} guesses`,
             shareSource: "visible-board",
           }

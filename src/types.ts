@@ -1,16 +1,18 @@
 export type Json =
   null | boolean | number | string | Json[] | { [key: string]: Json };
+export type Outcome = "won" | "lost" | "completed";
 export interface Observation {
   game: string;
   puzzleId: string;
   progress: number;
   complete: boolean;
   checkpoint?: Json;
-  outcome?: "won" | "lost";
+  outcome?: Outcome;
   score?: string;
   guesses?: number;
   shareText?: string;
   shareSource?: string;
+  metrics?: Record<string, number>;
   spoiler?: Json;
 }
 export interface Adapter {
@@ -29,11 +31,12 @@ export interface Game {
   adapter: Adapter;
 }
 export interface Result {
-  outcome: "won" | "lost";
+  outcome: Outcome;
   score: string;
-  guesses: number;
+  guesses?: number;
   shareText: string;
   shareSource: string;
+  metrics?: Record<string, number>;
   spoiler: Json;
   completedAt: number;
   preexisting: boolean;
