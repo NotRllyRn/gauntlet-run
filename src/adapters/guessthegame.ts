@@ -28,10 +28,11 @@ const ranks: [number, string][] = [
   [1300, "Legendary Game Oracle"],
 ];
 export const guessthegame: Adapter = {
-  captureBackground: false,
-  boardSelector: ".current-game .Screenshots",
+  captureBackground: true,
+  boardSelector: ".current-game",
   resultSelector: ".current-game .result",
-  overlays: '.modal, [role="dialog"], .fs-sticky-footer',
+  overlays:
+    '.current-game .result, .current-game .footer, .modal, [role="dialog"], .fs-sticky-footer',
   read(doc, storage, now) {
     const board = doc.querySelector(".current-game");
     const id = board

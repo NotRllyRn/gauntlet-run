@@ -28,11 +28,11 @@ const ranks: Record<number, string> = {
   1300: "Legendary Music Oracle",
 };
 export const guesstheaudio: Adapter = {
-  captureBackground: false,
+  captureBackground: true,
   boardSelector: ".current-game",
   resultSelector: ".current-game .result",
   overlays:
-    '[role="dialog"], .modal, [id^="guesstheaudio_"], .fs-sticky-slot-element',
+    '.current-game .result, .current-game .footer, [role="dialog"], .modal, [id^="guesstheaudio_"], .fs-sticky-slot-element',
   read(doc, storage, now) {
     const day = Math.ceil(
       (now.getTime() - new Date(2023, 4, 4).getTime()) / 86400000,

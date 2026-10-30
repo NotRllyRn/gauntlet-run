@@ -4,10 +4,10 @@ const boardSelector = "div.flex.w-full.flex-col.items-center.gap-5.py-4";
 const day = (time: number) =>
   Math.floor((time - Date.UTC(2025, 7, 14, 8)) / 86400000);
 export const poople: Adapter = {
-  captureBackground: false,
+  captureBackground: true,
   boardSelector,
   resultSelector: ".poople-card",
-  overlays: "canvas",
+  overlays: ".poople-overlay, .poople-card, canvas, header.fixed",
   read(doc, storage, now) {
     const board = doc.querySelector(boardSelector);
     const heading = board
