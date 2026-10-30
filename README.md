@@ -60,9 +60,11 @@ Wordle may show its own Play, ads, help, consent, or login screens. Dismiss thes
 
 Share text template **v7** (image template **v6**) always follows the canonical catalog order: **Wordle, Globle, Krillion, Minecraftle, Lewdle, Angle, Costcodle, Guess the Audio, GuessThe.Game, then Poople**. Actual play order, shuffle, and selection never rearrange the slots. Excluded games show `Not included`; unfinished games retain their slot and accumulated time.
 
-- **Non-spoiler text:** date, run status, total gauntlet score/max, timing rules, total time, each outcome/native score, weighted points and focused game time. No answers, guesses, or boards.
-- **Spoiler image:** explicit spoiler label, fixed-width panels, canonical order, normalized board crops. Missing captures are labeled. Its dimensions depend only on the supported catalog, never the run's selection/order.
+- **Non-spoiler text:** one header with date, total score and total time, followed by colored per-game point rows. No status line, score denominator or native share grids. No answers, guesses, or boards.
+- **Spoiler image:** score/date/time header, per-game points, fixed-width panels, canonical order and normalized board crops. The image itself has no spoiler label; its board screenshots still contain spoilers. Missing captures are labeled. Its dimensions depend only on the supported catalog, never the run's selection/order.
 - **Full JSON:** actual suggested order, partial progress, timestamps, timings, results, and screenshots. This export contains spoilers.
+
+Use **Copy image** or download the PNG from the dashboard. The popup has text and image copy buttons near the top. Clipboard writes use the extension’s `clipboardWrite` permission; no clipboard reading is requested.
 
 Each completed game saves its own non-spoiler `result.shareText`, separately from scores, spoiler data, and the combined summary. Saved results display this text with a per-game copy button for the selected current or historical run.
 

@@ -53,11 +53,13 @@
         <select id="history" aria-label="Saved run"></select>
         <div class="actions">
           <button id="copy" class="secondary">Copy non-spoiler summary</button
+          ><button id="copy-image" class="secondary">Copy image</button
           ><button id="image" class="secondary">Download spoiler image</button
           ><button id="json" class="secondary">
             Export full run (spoilers)
           </button>
         </div>
+        <p id="copy-status" role="status"></p>
         <pre id="summary"></pre>
         <p class="hint">
           Canonical layout follows the game catalog. Play order and selection

@@ -1,28 +1,47 @@
 import type { Game, Run } from "./types";
 import { games } from "./games";
-import { scoreRun, scoreLabel, points } from "./scoring";
+import { scoreRun, points } from "./scoring";
 import { duration } from "./utils";
+export function shareHeader(run: Run): string {
+  const date = new Date(run.createdAt)
+    .toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "2-digit",
+      timeZone: "UTC",
+    })
+    .replace(",", "");
+  return `GAUNTLET RUN · v7 ${date} · score: ${points(scoreRun(run).total)} · time: ${duration(run.clock.totalMs)}`;
+}
 export function summary(run: Run, catalog: Game[] = games): string {
   const scores = scoreRun(run);
-  const lines = [
-    "GAUNTLET RUN · v7",
-    `Date: ${new Date(run.createdAt).toISOString().slice(0, 10)}`,
-    `Status: ${run.status}`,
-    scoreLabel(run),
-    "Total excludes pauses; game times count focused game tabs only.",
-    `Total: ${duration(run.clock.totalMs)}`,
-  ];
+  const lines = [shareHeader(run), ""];
   for (const game of catalog) {
     const item = run.games[game.id];
-    const earned = item?.result
-      ? scores.games[game.id]?.score
-        ? `${points(scores.games[game.id].points)} points`
-        : "score unavailable"
-      : "0 points";
-    lines.push(
-      `${game.name}: ${!item ? "Not included" : !item.result ? `Unfinished · ${duration(item.activeMs)}` : `${item.result.outcome} · ${item.result.score} · ${item.result.preexisting ? "Previously completed (untimed)" : duration(item.activeMs)}`} · ${earned}`,
-    );
+    const scored = scores.games[game.id];
+    const icon = !item
+      ? "⬜"
+      : !item.result
+        ? "⏳"
+        : !scored?.score
+          ? "❔"
+          : item.result.outcome === "lost"
+            ? "🟨"
+            : "🟩";
+    const label = !item
+      ? "Not included"
+      : !item.result
+        ? "Unfinished"
+        : !scored?.score
+          ? "score unavailable"
+          : `${points(scored.points)} pts`;
+    lines.push(`${icon} ${game.name}: ${label}`);
   }
+  if (run.status !== "complete" || scores.unavailable.length)
+    lines.push(
+      "",
+      "⏳ Provisional score · unfinished or unavailable results excluded",
+    );
   return lines.join("\n");
 }
 export async function spoilerImage(
@@ -37,12 +56,14 @@ export async function spoilerImage(
   ctx.fillStyle = "#10151b";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.fillStyle = "#c4ef93";
-  ctx.font = "bold 36px sans-serif";
-  ctx.fillText("GAUNTLET RUN · SPOILERS · v6", 40, 60);
+  ctx.font = "bold 23px sans-serif";
+  ctx.fillText(shareHeader(run), 40, 60, 1120);
   ctx.fillStyle = "#eef3ed";
   ctx.font = "20px sans-serif";
   ctx.fillText(
-    `${new Date(run.createdAt).toISOString().slice(0, 10)} · ${run.status} · Total ${duration(run.clock.totalMs)}`,
+    run.status !== "complete" || scoreRun(run).unavailable.length
+      ? "Provisional score"
+      : "Daily gauntlet results",
     40,
     100,
   );
@@ -52,6 +73,7 @@ export async function spoilerImage(
     40,
     136,
   );
+  const scores = scoreRun(run);
   for (let i = 0; i < catalog.length; i++) {
     const game = catalog[i],
       item = run.games[game.id],
@@ -67,7 +89,7 @@ export async function spoilerImage(
       !item
         ? "Not included"
         : item.result
-          ? `${item.result.outcome} · ${item.result.score}`
+          ? `${scores.games[game.id]?.score ? `${points(scores.games[game.id].points)} pts` : "score unavailable"} · ${item.result.outcome}`
           : "Unfinished",
       x + 22,
       y + 76,

@@ -31,7 +31,7 @@ Every finite-game win outranks its failure partial credit. These are scoring pol
 
 ## UI and sharing
 
-Dashboard and popup show running total, weighted game points, and the existing timers. The existing **Copy non-spoiler summary** button now includes the total/max and each game's outcome, native score, time, and weighted contribution. The ten rows retain catalog order regardless of selection or play order. Native per-game share copies remain unchanged.
+Dashboard and popup show running total, weighted game points, and the existing timers. The existing **Copy non-spoiler summary** button now includes the total score and time and colored rows with each game's weighted points. The ten rows retain catalog order regardless of selection or play order. Native per-game share copies remain unchanged.
 
 ## Verification
 

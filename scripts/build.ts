@@ -9,7 +9,7 @@ const common = {
   version: "0.2.0",
   description:
     "Play games in any order, with focused-tab timers, pause/resume, local progress, and board screenshots.",
-  permissions: ["storage", "unlimitedStorage", "alarms"],
+  permissions: ["storage", "unlimitedStorage", "alarms", "clipboardWrite"],
   host_permissions: matches,
   optional_host_permissions: ["<all_urls>"],
   action: { default_title: "Gauntlet Run", default_popup: "popup.html" },

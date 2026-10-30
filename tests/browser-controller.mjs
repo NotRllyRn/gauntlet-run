@@ -196,44 +196,61 @@ async function main() {
         `Every browser fixture must be scorable: ${scoreRun(finished).unavailable.join(", ")}`,
       );
       assert(scoreRun(finished).total > 0, "Completed run earns points");
-      const frame = document.createElement("iframe");
-      frame.src = api.runtime.getURL("dashboard.html");
-      document.body.append(frame);
-      await new Promise((resolve) => (frame.onload = resolve));
-      for (
-        let i = 0;
-        i < 40 && !frame.contentDocument.getElementById("summary").textContent;
-        i++
-      )
-        await sleep(100);
-      assert(
-        frame.contentDocument.getElementById("score").textContent ===
-          scoreLabel(finished),
-        "Dashboard shows total",
-      );
-      assert(
-        frame.contentDocument.getElementById("summary").textContent ===
-          summary(finished),
-        "Dashboard shows canonical summary",
-      );
-      let copied;
-      Object.defineProperty(
-        frame.contentWindow.navigator.clipboard,
-        "writeText",
-        {
-          value: async (text) => {
-            copied = text;
+      for (const page of ["dashboard", "popup"]) {
+        const frame = document.createElement("iframe");
+        frame.src = api.runtime.getURL(`${page}.html`);
+        document.body.append(frame);
+        await new Promise((resolve) => (frame.onload = resolve));
+        for (
+          let i = 0;
+          i < 40 &&
+          frame.contentDocument.getElementById("score").textContent !==
+            scoreLabel(finished);
+          i++
+        )
+          await sleep(100);
+        const doc = frame.contentDocument;
+        assert(
+          doc.getElementById("score").textContent === scoreLabel(finished),
+          `${page} shows total`,
+        );
+        if (page === "dashboard")
+          assert(
+            doc.getElementById("summary").textContent === summary(finished),
+            "Dashboard shows canonical summary",
+          );
+        let copied;
+        Object.defineProperty(
+          frame.contentWindow.navigator.clipboard,
+          "writeText",
+          {
+            value: async (text) => {
+              copied = text;
+            },
+            configurable: true,
           },
-          configurable: true,
-        },
-      );
-      frame.contentDocument.getElementById("copy").click();
-      await sleep(100);
-      assert(
-        copied === summary(finished),
-        "Copy button writes scored non-spoiler summary",
-      );
-      frame.remove();
+        );
+        doc.getElementById("copy").click();
+        await sleep(100);
+        assert(
+          copied === summary(finished),
+          `${page} copies scored non-spoiler summary`,
+        );
+        // Exercise the real PNG clipboard write, not a mock, in both browsers.
+        doc.getElementById("copy-image").click();
+        for (
+          let i = 0;
+          i < 100 &&
+          doc.getElementById("copy-status").textContent !== "Image copied.";
+          i++
+        )
+          await sleep(100);
+        assert(
+          doc.getElementById("copy-status").textContent === "Image copied.",
+          `${page} image copy: ${doc.getElementById("error").textContent}`,
+        );
+        frame.remove();
+      }
       const images = await api.storage.local.get(
         Object.values(finished.games).map((g) => g.screenshotKey),
       );

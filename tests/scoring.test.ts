@@ -185,7 +185,7 @@ test("totals use fixed roster, saved weights/scale, and do not depend on play or
   assert.deepEqual(scoreRun(saved), scoreRun(run));
   assert.equal(summary(saved), summary(run));
   assert(!summary(run).includes("SECRET"));
-  assert(summary(run).includes("Score: 3636 / 20000 (provisional)"));
+  assert(summary(run).includes("score: 3636"));
   run.games.krillion.result = result("malformed");
   assert.deepEqual(scoreRun(run).unavailable, ["krillion"]);
   assert(summary(run).includes("score unavailable"));

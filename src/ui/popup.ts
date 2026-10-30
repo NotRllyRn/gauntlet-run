@@ -1,3 +1,4 @@
+import { wireShareControls, renderShareControls } from "./share-controls";
 import { api } from "../browser/api";
 import { games } from "../games";
 import type { Run, Settings } from "../types";
@@ -13,8 +14,10 @@ let run: Run | null = null;
 async function refresh(): Promise<void> {
   run = (await send({ type: "getRun" })).run || null;
   renderRun(run);
+  renderShareControls(run);
 }
 wireRunControls(() => run);
+wireShareControls(() => run);
 onClick("dashboard", () =>
   api.tabs.create({ url: api.runtime.getURL("dashboard.html") }),
 );
@@ -38,6 +41,7 @@ api.storage.onChanged.addListener((changes, area) => {
   if (area === "local" && changes.activeRun) {
     run = (changes.activeRun.newValue as Run) || null;
     renderRun(run);
+    renderShareControls(run);
     element<HTMLButtonElement>("start").disabled = Boolean(
       run && ["running", "paused"].includes(run.status),
     );

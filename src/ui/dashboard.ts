@@ -1,3 +1,4 @@
+import { wireShareControls, renderShareControls } from "./share-controls";
 import { api } from "../browser/api";
 import { games } from "../games";
 import { summary, spoilerImage } from "../sharing";
@@ -69,7 +70,8 @@ function renderShare(): void {
     ? summary(run)
     : "Start a run to save results.";
   void renderResults(run);
-  for (const id of ["copy", "image", "json"])
+  renderShareControls(run);
+  for (const id of ["image", "json"])
     element<HTMLButtonElement>(id).disabled = !run;
 }
 function download(blob: Blob, name: string): void {
@@ -88,7 +90,7 @@ onClick("start", () =>
   ),
 );
 onClick("stop", () => send({ type: "stop" }));
-onClick("copy", () => navigator.clipboard.writeText(summary(chosenRun()!)));
+wireShareControls(chosenRun);
 onClick("json", async () => {
   const run = chosenRun()!;
   download(
