@@ -1,4 +1,6 @@
-globalThis.Gauntlet.cropScreenshot = async function (dataURL, rect) {
+import { api } from "./api";
+import type { CaptureRect } from "../types";
+async function cropScreenshot(dataURL: string, rect: CaptureRect) {
   const bitmap = await createImageBitmap(await (await fetch(dataURL)).blob());
   const sx = bitmap.width / rect.viewportWidth,
     sy = bitmap.height / rect.viewportHeight;
@@ -7,7 +9,7 @@ globalThis.Gauntlet.cropScreenshot = async function (dataURL, rect) {
     Math.round(rect.height * sy),
   );
   canvas
-    .getContext("2d")
+    .getContext("2d")!
     .drawImage(
       bitmap,
       Math.round(rect.x * sx),
@@ -27,31 +29,32 @@ globalThis.Gauntlet.cropScreenshot = async function (dataURL, rect) {
   for (let i = 0; i < bytes.length; i += 32768)
     binary += String.fromCharCode(...bytes.subarray(i, i + 32768));
   return `data:image/png;base64,${btoa(binary)}`;
-};
+}
 
-globalThis.Gauntlet.captureBoard = async function (browserAPI, tab) {
+export async function captureBoard(tab: chrome.tabs.Tab) {
   try {
-    const prep = await browserAPI.tabs.sendMessage(tab.id, {
-      type: "prepareCapture",
-    });
+    const prep: { rect: CaptureRect; error?: string } =
+      await api.tabs.sendMessage(tab.id!, {
+        type: "prepareCapture",
+      });
     if (prep.error) throw new Error(prep.error);
     const before = (
-      await browserAPI.tabs.query({ active: true, windowId: tab.windowId })
+      await api.tabs.query({ active: true, windowId: tab.windowId })
     )[0];
     if (before?.id !== tab.id || before.url !== prep.rect.href)
       throw new Error("Game tab changed before capture.");
-    const data = await browserAPI.tabs.captureVisibleTab(tab.windowId, {
+    const data = await api.tabs.captureVisibleTab(tab.windowId, {
       format: "png",
     });
     const after = (
-      await browserAPI.tabs.query({ active: true, windowId: tab.windowId })
+      await api.tabs.query({ active: true, windowId: tab.windowId })
     )[0];
     if (after?.id !== tab.id || after.url !== prep.rect.href)
       throw new Error("Game tab changed during capture.");
-    return await globalThis.Gauntlet.cropScreenshot(data, prep.rect);
+    return await cropScreenshot(data, prep.rect);
   } finally {
     try {
-      await browserAPI.tabs.sendMessage(tab.id, { type: "restoreCapture" });
+      await api.tabs.sendMessage(tab.id!, { type: "restoreCapture" });
     } catch {}
   }
-};
+}

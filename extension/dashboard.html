@@ -9,36 +9,41 @@
   <body>
     <main>
       <header>
-        <span class="eyebrow">TWO GAMES. ONE RUN.</span>
+        <span class="eyebrow">YOUR GAMES. YOUR ORDER.</span>
         <h1>Gauntlet Run</h1>
-        <p>Wordle + Globle, automatically timed and saved.</p>
+        <p>Switch games freely. Your progress and timers stay with the run.</p>
       </header>
       <section>
         <h2>Your lineup</h2>
-        <p>
-          Choose games and their order. Daily puzzles already completed are
-          imported as untimed.
-        </p>
+        <p>Choose games and a suggested order. You can switch at any time.</p>
         <div id="lineup"></div>
         <label class="shuffle"
-          ><input id="random" type="checkbox" /> Shuffle selected games at the
-          start</label
+          ><input id="random" type="checkbox" /> Shuffle the suggested
+          order</label
         >
-        <div class="actions">
-          <button id="start">Start run</button
-          ><button id="retry" class="secondary">Return / retry capture</button
-          ><button id="stop" class="secondary">Stop run</button>
-        </div>
+        <div class="actions"><button id="start">Start run</button></div>
         <p class="hint">
-          Keep the game tab visible when finishing. Screenshots are saved
-          locally; nothing is uploaded. Timing includes loading and transitions.
+          Automatic screenshots require optional all-sites access. Results stay
+          on this device.
         </p>
       </section>
-      <section aria-live="polite">
-        <h2 id="run-title">No run yet</h2>
-        <p id="status"></p>
+      <section>
+        <h2 id="run-title">No active run</h2>
         <p id="elapsed"></p>
-        <p id="error" role="alert"></p>
+        <div class="actions">
+          <button id="next">Next game</button><button id="pause">Pause</button
+          ><button id="stop" class="secondary">End run</button>
+        </div>
+        <p id="error" role="status"></p>
+        <div id="game-list"></div>
+        <p class="hint">
+          Each Open button creates a new tab. Manually opened supported game
+          tabs join automatically. Total time includes research; game time
+          counts only the focused game tab. Pausing stops both timers.
+        </p>
+      </section>
+      <section>
+        <h2>Saved results</h2>
         <div id="results"></div>
       </section>
       <section>
@@ -53,13 +58,11 @@
         </div>
         <pre id="summary"></pre>
         <p class="hint">
-          Share layout v1 always lists Wordle, then Globle, regardless of play
-          order. Excluded games keep their slot.
+          Canonical layout: Wordle, then Globle. Play order and selection never
+          rearrange the share slots.
         </p>
       </section>
     </main>
-    <script src="core.js"></script>
-    <script src="export-image.js"></script>
-    <script type="module" src="dashboard.js"></script>
+    <script src="dashboard.js"></script>
   </body>
 </html>
