@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Gauntlet Run</title>
+    <link rel="stylesheet" href="dashboard.css" />
+  </head>
+  <body>
+    <main>
+      <header>
+        <span class="eyebrow">TWO GAMES. ONE RUN.</span>
+        <h1>Gauntlet Run</h1>
+        <p>Wordle + Globle, automatically timed and saved.</p>
+      </header>
+      <section>
+        <h2>Your lineup</h2>
+        <p>
+          Choose games and their order. Daily puzzles already completed are
+          imported as untimed.
+        </p>
+        <div id="lineup"></div>
+        <label class="shuffle"
+          ><input id="random" type="checkbox" /> Shuffle selected games at the
+          start</label
+        >
+        <div class="actions">
+          <button id="start">Start run</button
+          ><button id="retry" class="secondary">Return / retry capture</button
+          ><button id="stop" class="secondary">Stop run</button>
+        </div>
+        <p class="hint">
+          Keep the game tab visible when finishing. Screenshots are saved
+          locally; nothing is uploaded. Timing includes loading and transitions.
+        </p>
+      </section>
+      <section aria-live="polite">
+        <h2 id="run-title">No run yet</h2>
+        <p id="status"></p>
+        <p id="elapsed"></p>
+        <p id="error" role="alert"></p>
+        <div id="results"></div>
+      </section>
+      <section>
+        <h2>Share a run</h2>
+        <select id="history" aria-label="Saved run"></select>
+        <div class="actions">
+          <button id="copy" class="secondary">Copy non-spoiler summary</button
+          ><button id="image" class="secondary">Download spoiler image</button
+          ><button id="json" class="secondary">
+            Export full run (spoilers)
+          </button>
+        </div>
+        <pre id="summary"></pre>
+        <p class="hint">
+          Share layout v1 always lists Wordle, then Globle, regardless of play
+          order. Excluded games keep their slot.
+        </p>
+      </section>
+    </main>
+    <script src="core.js"></script>
+    <script src="export-image.js"></script>
+    <script type="module" src="dashboard.js"></script>
+  </body>
+</html>
