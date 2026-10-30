@@ -1,60 +1,90 @@
 # Gauntlet Run
 
-A small desktop browser extension for playing **daily Wordle and Globle** in one timed run. Choose either or both games, arrange their order, or shuffle. The extension detects completion, saves the result and game-style share text, captures the board behind the result dialog, and opens the next game.
+A **TypeScript browser extension** for playing daily Wordle and Globle in one resumable gauntlet. Choose games, reorder or shuffle the suggested lineup, and switch whenever you want. Scores, share text, board screenshots, progress, and timers stay on your device.
 
-All data stays in extension-local storage. No server, accounts, telemetry, framework, bundler, or runtime dependencies.
+## Play your way
 
-## Install for development
+- **Next game** and **Open Wordle / Open Globle** open new tabs. Existing unfinished tabs are preserved.
+- Open either supported website yourself: the extension automatically associates it with your active run, provided that game was selected.
+- Return to a game later. Its focused time accumulates across visits and tabs; it is never counted twice.
+- Completion is detected independently for each game. Finish Globle first even if Wordle was first in the lineup.
+- After saving a result screenshot, the extension opens the next unfinished game. Results remain saved if you switch away before the screenshot can be taken; return to that game to finish capture.
+- The toolbar popup provides switching and pause/resume. The dashboard provides lineup, history, and exports.
 
-Run `npm ci && npm run build` (Node 22+, Python 3 for ZIP packaging).
+## Two timers
 
-- **Chrome / Edge 120+:** open `chrome://extensions` / `edge://extensions`, enable Developer mode, choose **Load unpacked**, and select `dist/chrome`.
-- **Firefox desktop 142+:** open `about:debugging#/runtime/this-firefox`, choose **Load Temporary Add-on**, and select `dist/firefox/manifest.json`. Temporary installations are removed when Firefox restarts. Permanent distribution needs Mozilla signing; the provided ZIP is an unsigned development build.
+**Total time** counts elapsed time while the run is running, including loading, research tabs, and other apps. Explicit pauses and browser downtime after recovery are excluded. It stops when every selected game has a detected result, rather than waiting for screenshot processing.
 
-Click the toolbar extension icon to open the dashboard. Choose the lineup and click Start. Grant the optional all-sites permission when prompted: Chromium requires this permission for unattended screenshots after navigating between sites. Content scripts are registered only for the two games; the extension never uploads page data.
+**Game time** counts only the active game tab in the focused browser window. Research tabs, background game tabs, unfocused windows, and pauses add no game time. Time stops for a game when its result is detected. Duplicate tabs share one accumulated game timer.
 
-Play in the tab the extension opens. Wordle may show its own Play, ad, help, cookie, or login screens; dismiss these normally. When a game ends, keep its tab visible for a few seconds while the board screenshot is saved. Capture errors appear in the dashboard; use **Return / retry capture** after resolving them.
+A visible page renews a short five-second timing lease. If a page crashes, freezes, or the device sleeps, the extension cannot accrue hours of unsupported game time from a stale focus record. This is approximate browser timing, not an authoritative competitive leaderboard.
 
-## Scope and behavior
+**Pause** stops both timers and automatic completion processing until Resume. It does not freeze another website's internal JavaScript or prevent you from interacting with that website.
 
-- Wordle daily game: wins and six-guess losses. Globle daily `/game`: wins. Practice, archives, and other games are outside this version.
-- Share text is reconstructed from evaluated Wordle tiles/settings or Globle's saved statistics using the games' observed formats. The extension does not click Share, read the clipboard, or read hidden solutions.
-- Wordle's screenshot is its six-row grid. Globle's screenshot is the globe canvas, including its rendered country highlights. The surrounding page, stats card, and guess list are excluded.
-- Overlays are temporarily hidden and restored, including on errors. The visible tab is captured and cropped to the target element; this preserves the real WebGL globe. If the full target does not fit or is covered, capture fails explicitly rather than saving the wrong image.
-- Results persist before navigation. Completion events are serialized and deduplicated. A failed screenshot leaves the run on that stage with its detected result pending.
-- Already-completed daily puzzles are imported as **previously completed (untimed)**. Existing progress is not cleared. A resumed, partially played puzzle includes only time spent since launching this run.
-- Timing uses persisted timestamps, includes loading, ads, transitions, capture waits, and time away, and has no pause feature. A stage ends at detected completion; total time ends after the final capture. Detection polls once per second, so this is casual timing, not precision competitive timing.
-- Screenshots, histories, and exports can contain answers. The dashboard hides screenshots behind a spoiler disclosure. Uninstalling the extension removes local history; export JSON if you want a backup.
+## Autosave and recovery
 
-## Fixed sharing requirement
+- Focus changes, opening games, completions, pauses, and resumes persist immediately.
+- Game observations/checkpoints arrive every second. A 30-second browser alarm checkpoints total time when no game is actively sending observations.
+- Screenshots are separate storage entries, so timer saves do not rewrite image data.
+- Closing/reopening the browser restores the run **paused**, with its saved progress, timings, and results. Click Resume and open the desired game. Worker suspension within the same browser session does not pause the run.
+- There is no reliable last callback after an abrupt process kill. Recovery uses the last successful checkpoint, so a crash can lose roughly the last observation interval of game time or up to the last alarm interval of total time. Browser throttling can extend these intervals.
+- The games retain their own playable boards in their site storage. The extension saves observed guesses/progress but does not rewrite the games' private state. **A daily puzzle changing at midnight cannot always be resumed on its original website.** The extension detects a changed puzzle ID, pauses, and preserves the old run rather than mixing two days. Clearing site storage can also remove the playable board.
+- Existing v0.1 run records are backed up and migrated. Earlier timings used wall clock; new focused-game counters begin at zero on migration.
+- All data uses extension-local browser storage, not a server. Uninstalling the extension deletes it. Export full JSON if you want an independent backup.
 
-Share template **v1** always places **Wordle first, Globle second**, regardless of play order, shuffle, or selected subset. Excluded games retain a `Not included` slot; unfinished games retain an `Unfinished` slot.
+## Install
 
-- **Non-spoiler text:** date, status, timing rule, total duration, and each game's outcome/score/time. No words, country names, answer boards, or screenshots.
-- **Spoiler image:** fixed 1200×930 image, explicit spoiler heading, two fixed panels, consistent labels and screenshot fitting. Excluded games keep an empty labeled panel.
-- The raw JSON stores the actual play order and full per-game share text and screenshots. It is explicitly a spoiler export.
-
-When more games are implemented, add their canonical slots and version the layout. This version deliberately has two slots, not seven empty placeholders for unspecified games.
-
-## Code map
-
-Plain JavaScript and native extension APIs keep the project easy to change. The browser global `Gauntlet` shares small helpers between classic content scripts and the two background implementations.
-
-- `extension/adapters/wordle.js`, `globle.js`: game-specific DOM/storage readers and board/overlay selectors. Pure reads; no navigation or extension API calls.
-- `extension/content.js`: polls the adapter and responds to capture requests.
-- `extension/capture.js`: temporarily exposes the board, validates its visible rectangle, and restores the page.
-- `extension/screenshot.js`: validates the active tab, captures and crops browser pixels, and always requests page restoration.
-- `extension/background.js`: one sequential run coordinator; validates messages, persists state, captures, and advances. Chrome service worker and Firefox background event page share this file.
-- `extension/core.js`: two-game catalog, run creation, shuffle, dates, and canonical non-spoiler formatting.
-- `extension/dashboard.*`: lineup controls, progress/history, and local downloads.
-- `extension/export-image.js`: canonical spoiler-image renderer.
-- `scripts/build.mjs`: copies source and generates the two small manifests and ZIP files.
-
-There is no plugin framework or generic workflow engine. To support a third game, implement its adapter, add a catalog entry and manifest match, then intentionally update the fixed export layout and its version.
-
-## Checks
+Development requires Node 22+:
 
 ```sh
+npm ci
+npm run typecheck
+npm test
+npm run build
+```
+
+- **Chrome / Edge 120+:** open `chrome://extensions` / `edge://extensions`, enable Developer mode, choose **Load unpacked**, and select `dist/chrome`.
+- **Firefox desktop 142+:** open `about:debugging#/runtime/this-firefox`, choose **Load Temporary Add-on**, and select `dist/firefox/manifest.json`. Temporary add-ons are removed on browser restart; reload the same extension ID for development. Persistent installation for everyday use requires a Mozilla-signed package. Development ZIPs are unsigned.
+
+Builds are `dist/gauntlet-chrome.zip` and `dist/gauntlet-firefox.zip`. Start asks for optional all-sites permission because unattended cross-site screenshot capture requires it. Content scripts run only on the registered game URLs. There is no telemetry or upload endpoint.
+
+Wordle may show its own Play, ads, help, consent, or login screens. Dismiss these normally. Keep a finished game visible for a few seconds for capture. If the board is covered or does not fit, the extension preserves the result and offers Retry screenshot.
+
+## Consistent sharing
+
+Share template **v2** always follows the canonical catalog order: **Wordle, then Globle**. Actual play order, shuffle, and selection never rearrange the slots. Excluded games show `Not included`; unfinished games retain their slot and accumulated time.
+
+- **Non-spoiler text:** date, run status, timing rules, total time, each outcome/score and focused game time. No answers, guesses, or boards.
+- **Spoiler image:** explicit spoiler label, fixed-width panels, canonical order, normalized board crops. Missing captures are labeled. Its dimensions depend only on the supported catalog, never the run's selection/order.
+- **Full JSON:** actual suggested order, partial progress, timestamps, timings, results, and screenshots. This export contains spoilers.
+
+Per-game share text is reconstructed from observed Wordle tiles/settings or Globle statistics. It does not read the clipboard or hidden answers. Wordle capture targets the six-row board; Globle capture targets the rendered globe canvas. The results overlay is temporarily hidden and restored, including on failure.
+
+## Small modules, reusable adapter contract
+
+TypeScript provides strict contracts and maintainability; it compiles to JavaScript and does not inherently make browser execution faster. Small checkpoint writes and separate image storage keep the runtime lightweight. There are no runtime dependencies, application framework, server, or generic plugin engine.
+
+- `src/run/engine.ts`: pure run/timer transitions; accepts timestamps for deterministic tests.
+- `src/run/storage.ts`: local persistence, screenshot storage, v1 migration, and session recovery.
+- `src/background.ts`: browser events, serialized commands, tab discovery, and capture coordination.
+- `src/adapters/`: only game-specific detection, progress extraction, and capture selectors.
+- `src/capture.ts`: exposes the board, validates its rectangle, and restores the page.
+- `src/browser/screenshot.ts`: browser capture, tab validation, and pixel cropping.
+- `src/ui/`: shared popup/dashboard controls.
+- `src/sharing.ts`: canonical text and image layouts driven by the catalog.
+- `src/games.ts`: the one registration point for games, URLs, and manifest matches.
+
+To add another game:
+
+1. Copy `templates/game-adapter.ts` into `src/adapters/`.
+2. Implement its board selector, overlay selectors, and `read()` method. Return a stable puzzle ID, progress/checkpoint, and a complete result only after reliable completion evidence.
+3. Register it once in `src/games.ts`. Navigation, timing, saving, UI controls, manifest generation, and share panels are shared automatically.
+4. Add adapter fixtures/tests. Bump the sharing template version if changing the canonical catalog layout.
+
+## Verification
+
+```sh
+npm run typecheck
 npm test
 npm run build
 npx playwright install chromium firefox
@@ -62,8 +92,8 @@ npm run test:browser
 npx web-ext lint --source-dir dist/firefox
 ```
 
-The installed-extension tests use deterministic local pages with real dialogs and canvas rendering. They verify both game transitions, persisted results, exact crop dimensions, and that the popup's pixels are absent. Test-only URL overrides, broad host grants, and a reporting harness are placed in separate `dist/test-*` directories and never included in release ZIPs.
+The installed-extension browser test performs actual close/reopen cycles in disposable Chromium and Firefox profiles. It covers Wordle left at three guesses, manual Globle tabs, Next opening new tabs, research exclusion, pause/resume, saved recovery, reverse-order completion, clean screenshots, and canonical text/image exports. Test-only catalog URLs and reporting pages are bundled into `dist/test-*`, never the shipping ZIPs.
 
-`node scripts/live-extension-test.mjs` exercises the real sites in a disposable Chromium profile. It intentionally completes today's puzzles in that test profile (Wordle loss and Globle win). The test harness obtains Globle's test answer to exercise the win path; that code is **not shipped in the extension**. The production adapters only read finished results. Live sites can change or show consent/anti-automation screens, so this is a manual integration check rather than a reliable offline test.
+`node scripts/live-extension-test.mjs` checks the real websites in an isolated Chromium profile. It intentionally completes today's games in that profile. Its test-only Globle answer lookup is not shipped. Live pages may change or show anti-automation screens; deterministic fixtures form the regression suite.
 
-See `research/findings.md` for observed selectors, verification, and remaining limits.
+See `research/findings.md` for the original live evidence and limitations.

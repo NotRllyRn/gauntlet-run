@@ -1,63 +1,100 @@
-// Installs real temporary extensions into both browsers, using deterministic local games.
 import { chromium, firefox } from "playwright";
 import { spawn } from "node:child_process";
+import { build } from "esbuild";
 import http from "node:http";
 import fs from "node:fs/promises";
 import path from "node:path";
+import os from "node:os";
 import assert from "node:assert/strict";
 import { PNG } from "pngjs";
-const wordle = `<!doctype html><style>body{margin:0;background:#eee}#wordle-app-game{margin:20px auto;width:300px}.Board-module_board__test{width:300px;height:360px;display:grid;grid-template-rows:repeat(6,1fr)}[role=group]{display:grid;grid-template-columns:repeat(5,1fr)}[data-state]{background:#ddd;border:3px solid white}[data-state=correct]{background:#00aa00}dialog{position:fixed;inset:0;width:100vw;height:100vh;background:#ff00ff;border:0;margin:0;z-index:999}</style><main id="wordle-app-game"><div class="Board-module_board__test">${Array.from({ length: 6 }, () => `<div role="group">${'<div data-state="empty"></div>'.repeat(5)}</div>`).join("")}</div></main><script>setTimeout(()=>{document.querySelectorAll('[role=group]')[0].querySelectorAll('[data-state]').forEach(e=>{e.dataset.state='correct';e.textContent='a'});const d=document.createElement('dialog');d.textContent='RESULT POPUP';document.body.append(d);d.showModal()},2200)</script>`;
-const globle = `<!doctype html><style>body{margin:0;background:#eee}.scene-container{margin:30px auto;width:400px;height:400px}.m{position:fixed;inset:0;background:#ff00ff;z-index:999}input{display:block}</style><input data-cy="guesser"><div class="scene-container"><canvas width="400" height="400"></canvas></div><script>const d=new Date(),day=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');localStorage.setItem('guesses',JSON.stringify({day,countries:[]}));const ctx=document.querySelector('canvas').getContext('2d');ctx.fillStyle='#0044cc';ctx.fillRect(0,0,400,400);setTimeout(()=>{localStorage.setItem('guesses',JSON.stringify({day,countries:['France']}));localStorage.setItem('statistics',JSON.stringify({lastWin:day,currentStreak:1,usedGuesses:[1],emojiGuesses:'🟩'}));document.querySelector('input').disabled=true;const overlay=document.createElement('div');overlay.className='m absolute z-40';overlay.textContent='RESULT POPUP';document.body.append(overlay)},2200)</script>`;
+import { wordle, globle } from "../tests/browser-fixtures.mjs";
 for (const target of process.argv[2]
   ? [process.argv[2]]
   : ["chrome", "firefox"]) {
   let resolveReport;
-  const report = new Promise((r) => (resolveReport = r));
+  const nextReport = () =>
+    new Promise((resolve) => {
+      resolveReport = resolve;
+    });
   const server = http.createServer((req, res) => {
     res.setHeader("Access-Control-Allow-Origin", "*");
     if (req.url === "/report") {
-      let b = "";
-      req.on("data", (c) => (b += c));
+      let body = "";
+      req.on("data", (chunk) => (body += chunk));
       req.on("end", () => {
-        resolveReport(JSON.parse(b));
         res.end("ok");
+        resolveReport(JSON.parse(body));
       });
       return;
     }
     res.setHeader("Content-Type", "text/html; charset=utf-8");
-    res.end(req.url === "/wordle" ? wordle : globle);
+    res.end(
+      req.url.startsWith("/wordle")
+        ? wordle
+        : req.url.startsWith("/globle")
+          ? globle
+          : req.url === "/"
+            ? '<!doctype html><title>Globle home</title><script>setTimeout(()=>history.pushState({},"","/globle"),1000)</script>'
+            : "<!doctype html><title>Research tab</title><h1>Research</h1>",
+    );
   });
-  await new Promise((r) => server.listen(0, "127.0.0.1", r));
+  await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
   const origin = `http://127.0.0.1:${server.address().port}`;
   const dir = path.resolve(`dist/test-${target}-fixtures`);
-  await fs.rm(dir, { recursive: true, force: true });
+  await fs.mkdir(dir, { recursive: true });
   await fs.cp(`dist/${target}`, dir, { recursive: true });
-  const m = JSON.parse(await fs.readFile(`${dir}/manifest.json`));
-  m.host_permissions = ["<all_urls>"];
-  m.content_scripts[0].matches = ["http://127.0.0.1/*"];
-  await fs.appendFile(
-    `${dir}/core.js`,
-    `\nGauntlet.games[0].url='${origin}/wordle';Gauntlet.games[1].url='${origin}/globle';\n`,
-  );
-  // Test harness alone is allowed to start a run and report to the local test server.
-  const harness = `setTimeout(async()=>{try {await api.tabs.create({url:api.runtime.getURL('test-controller.html'),active:false});await handle({type:'start',ids:['wordle','globle']},{id:api.runtime.id,url:api.runtime.getURL('dashboard.html')})}catch(e){await fetch('${origin}/report',{method:'POST',body:JSON.stringify({error:e.message})})}},1000);`;
+  const testCatalog = {
+    name: "test-catalog",
+    setup(b) {
+      b.onLoad({ filter: /\/src\/games\.ts$/ }, async (args) => ({
+        contents: (await fs.readFile(args.path, "utf8"))
+          .replace(
+            "https://www.nytimes.com/games/wordle/index.html",
+            origin + "/wordle",
+          )
+          .replace('https://globle-game.com/"', origin + '/"')
+          .replace('https://globle-game.com/game"', origin + '/globle"')
+          .replace("https://globle-game.com/game'", origin + "/globle'"),
+        loader: "ts",
+      }));
+    },
+  };
+  await build({
+    entryPoints: {
+      background: "src/background.ts",
+      content: "src/content.ts",
+      dashboard: "src/ui/dashboard.ts",
+      popup: "src/ui/popup.ts",
+      "test-controller": "tests/browser-controller.mjs",
+    },
+    bundle: true,
+    format: "iife",
+    outdir: dir,
+    plugins: [testCatalog],
+  });
+  const manifest = JSON.parse(await fs.readFile(`${dir}/manifest.json`));
+  manifest.host_permissions = ["<all_urls>"];
+  manifest.content_scripts[0].matches = ["http://127.0.0.1/*"];
+  await fs.writeFile(`${dir}/manifest.json`, JSON.stringify(manifest));
   await fs.writeFile(
     `${dir}/test-controller.html`,
-    '<!doctype html><script src="test-controller.js"></script>',
+    '<!doctype html><script src="test-origin.js"></script><script src="test-controller.js"></script>',
   );
   await fs.writeFile(
-    `${dir}/test-controller.js`,
-    `const api=globalThis.browser||chrome;let ticks=0;const timer=setInterval(async()=>{const run=(await api.storage.local.get('activeRun')).activeRun;if(run?.status==='complete'||++ticks>25){clearInterval(timer);await fetch('${origin}/report',{method:'POST',body:JSON.stringify(run||{error:'No run'})})}},1000);`,
+    `${dir}/test-origin.js`,
+    `globalThis.TEST_ORIGIN=${JSON.stringify(origin)};`,
   );
-
-  await fs.appendFile(`${dir}/background.js`, harness);
-  await fs.writeFile(`${dir}/manifest.json`, JSON.stringify(m));
+  await fs.appendFile(
+    `${dir}/background.js`,
+    `\n(async()=>{const a=globalThis.browser||chrome;if(!(await a.storage.session.get('testHarnessStarted')).testHarnessStarted){await a.storage.session.set({testHarnessStarted:true});await a.tabs.create({url:a.runtime.getURL('test-controller.html'),active:false});}})();`,
+  );
+  const profile = await fs.mkdtemp(path.join(os.tmpdir(), "gauntlet-test-"));
   let context,
     proc,
     logs = "";
-  try {
+  async function launch() {
     if (target === "chrome")
-      context = await chromium.launchPersistentContext("", {
+      context = await chromium.launchPersistentContext(profile, {
         headless: true,
         channel: "chromium",
         args: [
@@ -69,7 +106,7 @@ for (const target of process.argv[2]
       });
     else {
       proc = spawn(
-        "node",
+        process.execPath,
         [
           "node_modules/web-ext/bin/web-ext.js",
           "run",
@@ -77,57 +114,95 @@ for (const target of process.argv[2]
           dir,
           "--firefox",
           firefox.executablePath(),
+          "--firefox-profile",
+          profile,
+          "--keep-profile-changes",
           "--no-reload",
+          "--verbose",
+          "--args=-no-remote",
           "--pref=extensions.originControls.grantByDefault=true",
           "--args=-headless",
         ],
-        { env: { ...process.env, MOZ_DISABLE_CONTENT_SANDBOX: "1" } },
+        {
+          detached: process.platform !== "win32",
+          env: { ...process.env, MOZ_DISABLE_CONTENT_SANDBOX: "1" },
+        },
       );
-      proc.stdout.on("data", (c) => (logs += c));
-      proc.stderr.on("data", (c) => (logs += c));
+      proc.stdout.on("data", (chunk) => (logs += chunk));
+      proc.stderr.on("data", (chunk) => (logs += chunk));
     }
-    const run = await Promise.race([
+  }
+  async function close() {
+    if (context) {
+      await context.close();
+      context = null;
+    }
+    if (proc) {
+      const p = proc;
+      proc = null;
+      if (process.platform === "win32") p.kill("SIGTERM");
+      else process.kill(-p.pid, "SIGTERM");
+      await Promise.race([
+        new Promise((r) => p.once("exit", r)),
+        new Promise((r) => setTimeout(r, 3000)),
+      ]);
+    }
+  }
+  async function wait(report) {
+    const result = await Promise.race([
       report,
       new Promise((_, reject) =>
         setTimeout(
-          () => reject(new Error(`Test timed out. ${logs}`)),
+          () => reject(new Error(`Browser test timeout: ${logs}`)),
           55000,
         ).unref(),
       ),
     ]);
-    assert.equal(
-      run.status,
-      "complete",
-      JSON.stringify(run.stage) + " " + run.error,
+    assert(!result.error, JSON.stringify(result));
+    return result;
+  }
+  try {
+    let pending = nextReport();
+    await launch();
+    const first = await wait(pending);
+    assert.equal(first.phase, "restart");
+    console.log(
+      `${target}: first phase passed; closing and reopening the browser`,
     );
-    for (const [game, dimensions] of [
+    await close();
+    await new Promise((r) => setTimeout(r, 3000));
+    pending = nextReport();
+    await launch();
+    const done = await wait(pending);
+    assert.equal(done.phase, "complete");
+    for (const [id, dimensions] of [
       ["wordle", [300, 360]],
       ["globle", [400, 400]],
     ]) {
-      const r = run.results[game];
-      assert.equal(r.preexisting, false);
-      assert(r.elapsedMs >= 2000);
-      assert(r.shareText);
-      const png = PNG.sync.read(
-        Buffer.from(r.screenshot.split(",")[1], "base64"),
-      );
+      const item = done.run.games[id];
+      assert(item.result.shareText);
+      assert(item.activeMs > 0);
+      assert.equal(item.result.preexisting, false);
+      const image = done.images[item.screenshotKey],
+        png = PNG.sync.read(Buffer.from(image.split(",")[1], "base64"));
       assert.deepEqual([png.width, png.height], dimensions);
       let magenta = 0;
       for (let i = 0; i < png.data.length; i += 4)
         if (png.data[i] > 240 && png.data[i + 1] < 20 && png.data[i + 2] > 240)
           magenta++;
-      assert.equal(magenta, 0, "Results popup must not appear in screenshot");
-      await fs.writeFile(
-        `research/${target}-${game}-fixture.png`,
-        Buffer.from(r.screenshot.split(",")[1], "base64"),
-      );
+      assert.equal(magenta, 0, "Result overlay must be absent");
     }
+    assert(done.summary.indexOf("Wordle:") < done.summary.indexOf("Globle:"));
+    assert(!done.summary.includes("France"));
+    const share = PNG.sync.read(
+      Buffer.from(done.shareImage.split(",")[1], "base64"),
+    );
+    assert.deepEqual([share.width, share.height], [1200, 850]);
     console.log(
-      `PASS ${target}: installed extension; Wordle → Globle; scores/share text persisted; cropped screenshots exclude dialogs; completed exactly two stages.`,
+      `PASS ${target}: partial progress, manual tabs, Next, research exclusion, pause/resume, actual browser restart, reverse-order completion, clean captures, canonical exports.`,
     );
   } finally {
-    if (context) await context.close();
-    if (proc) proc.kill("SIGTERM");
+    await close();
     server.close();
   }
 }

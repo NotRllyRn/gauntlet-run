@@ -160,6 +160,8 @@ async function handle(
     return;
   if (run.status === "paused" || run.status === "stopped")
     return { status: run.status };
+  if (run.status === "complete" && run.games[game.id].screenshotKey)
+    return { status: run.status };
   const tab = await focusedTab();
   // Background tabs may supply completion, but never earn focus time or renew another tab's lease.
   if (run.status === "running")

@@ -23,6 +23,7 @@ export interface Game {
   name: string;
   url: string;
   matches: string[];
+  aliases?: string[];
   adapter: Adapter;
 }
 export interface Result {

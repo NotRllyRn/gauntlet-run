@@ -35,3 +35,9 @@ The extension is an integration with independently maintained websites. Selector
 - Firefox manifest/package lint: zero errors and zero warnings.
 
 Live-site gameplay was exercised in Chromium; Firefox's extension APIs and pipeline were exercised with local fixtures, not a live logged-in NYT/Globle account. The distribution artifacts remain unsigned development builds.
+
+## Resumable TypeScript update
+
+The v0.2 installed-extension regression suite additionally exercises partial Wordle progress, manually opened Globle tabs (including homepage SPA navigation), research-tab exclusion from game time, new-tab switching, pause/resume, actual browser shutdown/relaunch with saved profiles, and completion in reverse order. Canonical exports retain catalog order. The live Chromium workflow was rerun successfully after the rewrite; the board images in this directory were regenerated from that run.
+
+Timing recovery uses the last durable checkpoint and resumes paused. It does not restore expired daily puzzles or rewrite third-party site storage. See the README for timing intervals and recovery limits.

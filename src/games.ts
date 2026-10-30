@@ -7,14 +7,16 @@ export const games: Game[] = [
     id: "wordle",
     name: "Wordle",
     url: "https://www.nytimes.com/games/wordle/index.html",
-    matches: ["https://www.nytimes.com/games/wordle/*"],
+    matches: ["https://www.nytimes.com/games/wordle*"],
+    aliases: ["https://www.nytimes.com/games/wordle/"],
     adapter: wordle,
   },
   {
     id: "globle",
     name: "Globle",
     url: "https://globle-game.com/game",
-    matches: ["https://globle-game.com/game*"],
+    matches: ["https://globle-game.com/*"],
+    aliases: ["https://globle-game.com/"],
     adapter: globle,
   },
 ];
@@ -22,14 +24,16 @@ export function gameForURL(url?: string): Game | undefined {
   if (!url) return;
   try {
     const actual = new URL(url);
-    return games.find((g) => {
-      const expected = new URL(g.url);
-      return (
-        actual.origin === expected.origin &&
-        actual.pathname.replace(/\/$/, "") ===
-          expected.pathname.replace(/\/$/, "")
-      );
-    });
+    return games.find((g) =>
+      [g.url, ...(g.aliases ?? [])].some((url) => {
+        const expected = new URL(url);
+        return (
+          actual.origin === expected.origin &&
+          actual.pathname.replace(/\/$/, "") ===
+            expected.pathname.replace(/\/$/, "")
+        );
+      }),
+    );
   } catch {
     return;
   }

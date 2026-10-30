@@ -2,12 +2,12 @@ import { api } from "./browser/api";
 import { gameForURL } from "./games";
 import { captureActive, prepareCapture, restoreCapture } from "./capture";
 import { errorMessage } from "./utils";
-const game = gameForURL(location.href);
-if (game) {
+{
   let busy = false;
   api.runtime.onMessage.addListener(
     (message: { type?: string }, _sender, respond) => {
-      if (message.type === "prepareCapture") {
+      const game = gameForURL(location.href);
+      if (message.type === "prepareCapture" && game) {
         prepareCapture(game.adapter).then(
           (rect) => respond({ rect }),
           (error) => respond({ error: errorMessage(error) }),
@@ -21,10 +21,11 @@ if (game) {
     },
   );
   async function inspect(): Promise<void> {
-    if (busy || captureActive) return;
+    const game = gameForURL(location.href);
+    if (!game || busy || captureActive) return;
     busy = true;
     try {
-      const snapshot = game!.adapter.read(document, localStorage, new Date());
+      const snapshot = game.adapter.read(document, localStorage, new Date());
       if (snapshot)
         await api.runtime.sendMessage({ type: "observation", snapshot });
       else await api.runtime.sendMessage({ type: "heartbeat" });

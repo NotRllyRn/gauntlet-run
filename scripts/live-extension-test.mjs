@@ -38,7 +38,7 @@ try {
   );
   const page = await pagePromise.catch(() => null);
   console.log("extension launched game tab");
-  const game = page || context.pages().find((p) => p.url().includes("nytimes"));
+  let game = page || context.pages().find((p) => p.url().includes("nytimes"));
   await game.waitForLoadState("domcontentloaded");
   console.log("game", game.url());
   await game
@@ -67,28 +67,20 @@ try {
   let run = await dashboard.evaluate(
     async () => (await chrome.storage.local.get("activeRun")).activeRun,
   );
-  console.log(
-    "after wordle",
-    JSON.stringify({
-      ...run,
-      results: Object.fromEntries(
-        Object.entries(run.results).map(([k, v]) => [
-          k,
-          { ...v, screenshot: v.screenshot?.slice(0, 50) },
-        ]),
-      ),
-    }),
+  if (!run.games.wordle.screenshotKey)
+    throw new Error(run.games.wordle.error || "Wordle screenshot not saved");
+  const wordleShot = await dashboard.evaluate(
+    async (key) => (await chrome.storage.local.get(key))[key],
+    run.games.wordle.screenshotKey,
   );
-  if (!run.results.wordle) {
-    await game.screenshot({ path: "research/wordle-failure.png" });
-    await fs.writeFile("/tmp/wordle-complete.html", await game.content());
-    throw new Error(run.error || "Wordle did not save");
-  }
   await fs.writeFile(
     "research/wordle-board.png",
-    Buffer.from(run.results.wordle.screenshot.split(",")[1], "base64"),
+    Buffer.from(wordleShot.split(",")[1], "base64"),
   );
-  await game.waitForURL("https://globle-game.com/game");
+  game = context
+    .pages()
+    .find((p) => p.url().startsWith("https://globle-game.com/game"));
+  if (!game) throw new Error("Next game tab was not opened");
   await game.waitForSelector('[data-cy="guesser"]');
   await game.waitForTimeout(2000);
   // Decode the same daily test puzzle the page loaded. This code is never shipped in the extension.
@@ -138,28 +130,15 @@ try {
   run = await dashboard.evaluate(
     async () => (await chrome.storage.local.get("activeRun")).activeRun,
   );
-  console.log(
-    "after globle",
-    run.status,
-    run.error,
-    run.stage,
-    run.results.globle?.shareText,
+  if (!run.games.globle.screenshotKey)
+    throw new Error(run.games.globle.error || "Globle screenshot not saved");
+  const globleShot = await dashboard.evaluate(
+    async (key) => (await chrome.storage.local.get(key))[key],
+    run.games.globle.screenshotKey,
   );
-  if (!run.results.globle) {
-    await game.screenshot({ path: "research/globle-failure.png" });
-    await fs.writeFile("/tmp/globle-complete.html", await game.content());
-    console.log(
-      "state",
-      await game.evaluate(() => ({
-        guesses: localStorage.guesses,
-        statistics: localStorage.statistics,
-      })),
-    );
-    throw new Error("Globle did not save");
-  }
   await fs.writeFile(
     "research/globle-board.png",
-    Buffer.from(run.results.globle.screenshot.split(",")[1], "base64"),
+    Buffer.from(globleShot.split(",")[1], "base64"),
   );
   await fs.writeFile(
     "research/live-run-raw.json",
