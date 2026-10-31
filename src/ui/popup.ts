@@ -1,3 +1,4 @@
+import { showUpdateNotice } from "./update-notice";
 import { wireShareControls, renderShareControls } from "./share-controls";
 import { api } from "../browser/api";
 import { games } from "../games";
@@ -53,3 +54,5 @@ void refresh().then(() => {
   );
 });
 setInterval(() => renderTimers(run), 500);
+
+void showUpdateNotice();

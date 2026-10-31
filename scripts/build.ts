@@ -2,15 +2,18 @@ import fs from "node:fs/promises";
 import { execFileSync } from "node:child_process";
 import { build } from "esbuild";
 import { games } from "../src/games";
+const { version } = JSON.parse(
+  await fs.readFile(new URL("../package.json", import.meta.url), "utf8"),
+);
 const matches = games.flatMap((g) => g.matches);
 const common = {
   manifest_version: 3,
   name: "Gauntlet Run",
-  version: "0.2.0",
+  version,
   description:
     "Play games in any order, with focused-tab timers, pause/resume, local progress, and board screenshots.",
   permissions: ["storage", "unlimitedStorage", "alarms", "clipboardWrite"],
-  host_permissions: matches,
+  host_permissions: [...matches, "https://api.github.com/*"],
   optional_host_permissions: ["<all_urls>"],
   action: { default_title: "Gauntlet Run", default_popup: "popup.html" },
   content_scripts: [{ matches, js: ["content.js"], run_at: "document_idle" }],

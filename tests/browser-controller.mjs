@@ -196,6 +196,9 @@ async function main() {
         `Every browser fixture must be scorable: ${scoreRun(finished).unavailable.join(", ")}`,
       );
       assert(scoreRun(finished).total > 0, "Completed run earns points");
+      await api.storage.local.set({
+        releaseUpdate: { checkedAt: Date.now(), latestVersion: "v99.0.0" },
+      });
       const controllerTab = await api.tabs.getCurrent();
       await api.tabs.update(controllerTab.id, { active: true });
       for (const page of ["dashboard", "popup"]) {
@@ -211,6 +214,21 @@ async function main() {
           i++
         )
           await sleep(100);
+        for (
+          let i = 0;
+          i < 40 && frame.contentDocument.getElementById("update-link").hidden;
+          i++
+        )
+          await sleep(100);
+        assert(
+          !frame.contentDocument.getElementById("update-link").hidden,
+          `${page} shows update notice`,
+        );
+        assert(
+          frame.contentDocument.getElementById("update-link").href ===
+            "https://github.com/NotRllyRn/gauntlet-run/releases/latest",
+          "Update links to our releases",
+        );
         frame.contentWindow.focus();
         const doc = frame.contentDocument;
         assert(

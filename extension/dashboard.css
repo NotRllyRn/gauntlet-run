@@ -160,3 +160,11 @@ a {
   font-size: 24px;
   color: #c4ef93;
 }
+
+.update-notice:not([hidden]) {
+  display: inline-block;
+  margin-bottom: 12px;
+  color: #c4ef93;
+  font-size: 14px;
+  font-weight: 650;
+}

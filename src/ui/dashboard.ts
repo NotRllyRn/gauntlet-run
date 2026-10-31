@@ -1,3 +1,4 @@
+import { showUpdateNotice } from "./update-notice";
 import { wireShareControls, renderShareControls } from "./share-controls";
 import { api } from "../browser/api";
 import { games } from "../games";
@@ -205,3 +206,5 @@ async function init(): Promise<void> {
 }
 void init();
 setInterval(() => renderTimers(active), 500);
+
+void showUpdateNotice();
