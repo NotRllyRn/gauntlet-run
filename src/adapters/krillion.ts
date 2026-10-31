@@ -40,8 +40,12 @@ function validRounds(value: unknown): value is Round[] {
 export const krillion: Adapter = {
   captureBackground: false,
   boardSelector: ".ds-root",
-  resultSelector,
-  overlays: 'dialog[open], [role="dialog"]',
+  resultSelector:
+    ".ds-done-inner > div:has(> section > ul > li:nth-child(7) > button[aria-expanded])",
+  scrollContainerSelector: ".ds-done",
+  // Keep the existing score/graph panel and the seven catch rows; hide promos and controls.
+  overlays:
+    'dialog[open], [role="dialog"], .ds-done-inner > div > :not(div:has(> div > .ds-done-krill), section:has(> ul > li > button[aria-expanded]))',
   read(doc, storage, now) {
     if (!doc.querySelector(".ds-root, .ds-done-krill")) return null;
     const day = new Intl.DateTimeFormat("en-CA", {

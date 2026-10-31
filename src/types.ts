@@ -19,6 +19,7 @@ export interface Adapter {
   captureBackground: boolean;
   boardSelector: string;
   resultSelector?: string;
+  scrollContainerSelector?: string;
   overlays: string;
   revealSelector?: string;
   read(document: Document, storage: Storage, now: Date): Observation | null;

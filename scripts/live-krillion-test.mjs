@@ -3,6 +3,7 @@
 import fs from "node:fs/promises";
 import assert from "node:assert/strict";
 import { openLiveExtension, waitForSavedResult } from "./live-browser.mjs";
+const evidenceName = process.argv[3] || "krillion";
 const { context, dashboard, start } = await openLiveExtension("krillion");
 try {
   if (process.argv[2]) {
@@ -31,6 +32,17 @@ try {
     .getByRole("button", { name: "Copy result", exact: true })
     .waitFor({ timeout: 30000 });
   const saved = await waitForSavedResult(dashboard, "krillion");
+  assert.equal(
+    await page
+      .locator(".ds-done-inner section > ul > li > button[aria-expanded]")
+      .count(),
+    7,
+  );
+  assert.equal(
+    await page.locator(".ds-done").evaluate((el) => el.scrollTop),
+    0,
+    "Capture restores the results panel scroll position",
+  );
   // Intercept only this disposable page's copy action to compare the site's actual text.
   await page.evaluate(() => {
     window.copiedResult = null;
@@ -45,15 +57,15 @@ try {
   assert.equal(saved.run.games.krillion.result.outcome, "completed");
   assert.equal(saved.run.status, "complete");
   await fs.writeFile(
-    "research/krillion-result.png",
+    `research/${evidenceName}-result.png`,
     Buffer.from(saved.image.split(",")[1], "base64"),
   );
   await fs.writeFile(
-    "research/krillion-live-raw.json",
+    `research/${evidenceName}-live-raw.json`,
     JSON.stringify(saved.run, null, 2),
   );
   console.log(
-    "PASS live Krillion: completion, native share equality, saved metrics, result-panel screenshot.",
+    "PASS live Krillion: completion, native share equality, saved metrics, graph and seven-round catch screenshot.",
   );
   console.log(native);
 } finally {

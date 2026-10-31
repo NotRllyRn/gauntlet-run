@@ -4,6 +4,9 @@ let saved: {
   x: number;
   y: number;
   target: Element;
+  scroller: HTMLElement | null;
+  scrollLeft: number;
+  scrollTop: number;
 } | null = null;
 let watchdog: ReturnType<typeof setTimeout>;
 export let captureActive = false;
@@ -15,6 +18,11 @@ export const restoreCapture = () => {
     style === null
       ? el.removeAttribute("style")
       : el.setAttribute("style", style);
+  saved.scroller?.scrollTo({
+    left: saved.scrollLeft,
+    top: saved.scrollTop,
+    behavior: "instant",
+  });
   window.scrollTo({ left: saved.x, top: saved.y, behavior: "instant" });
   saved = null;
 };
@@ -25,8 +33,9 @@ function renewWatchdog() {
 export function capturePosition(): CaptureRect {
   if (!saved) throw new Error("Capture session expired. Retry capture.");
   const rect = saved.target.getBoundingClientRect();
-  const y = Math.max(0, rect.y),
-    bottom = Math.min(innerHeight, rect.bottom);
+  const bounds = saved.scroller?.getBoundingClientRect();
+  const y = Math.max(0, bounds?.top ?? 0, rect.y),
+    bottom = Math.min(innerHeight, bounds?.bottom ?? innerHeight, rect.bottom);
   if (
     rect.width < 20 ||
     rect.height < 20 ||
@@ -75,11 +84,23 @@ export async function captureSlice(offsetY = 0): Promise<CaptureRect> {
     throw new Error("Invalid capture offset.");
   renewWatchdog();
   const rect = saved.target.getBoundingClientRect();
-  window.scrollTo({
-    left: scrollX,
-    top: scrollY + rect.y + offsetY,
-    behavior: "instant",
-  });
+  if (saved.scroller) {
+    saved.scroller.scrollTo({
+      left: saved.scroller.scrollLeft,
+      top:
+        saved.scroller.scrollTop +
+        rect.y -
+        saved.scroller.getBoundingClientRect().top +
+        offsetY,
+      behavior: "instant",
+    });
+  } else {
+    window.scrollTo({
+      left: scrollX,
+      top: scrollY + rect.y + offsetY,
+      behavior: "instant",
+    });
+  }
   await new Promise((r) => setTimeout(r, 250));
   await new Promise<void>((r) =>
     requestAnimationFrame(() => requestAnimationFrame(() => r())),
@@ -95,8 +116,26 @@ export async function prepareCapture(adapter: Adapter): Promise<CaptureRect> {
   const target = document.querySelector(selector);
   if (!target)
     throw new Error("Capture target not found. The game may have changed.");
+  const scroller = adapter.scrollContainerSelector
+    ? document.querySelector<HTMLElement>(adapter.scrollContainerSelector)
+    : null;
+  if (
+    adapter.scrollContainerSelector &&
+    (!scroller || !scroller.contains(target))
+  )
+    throw new Error(
+      "Capture scroll container not found. The game may have changed.",
+    );
   captureActive = true;
-  saved = { styles: [], x: scrollX, y: scrollY, target };
+  saved = {
+    styles: [],
+    x: scrollX,
+    y: scrollY,
+    target,
+    scroller,
+    scrollLeft: scroller?.scrollLeft ?? 0,
+    scrollTop: scroller?.scrollTop ?? 0,
+  };
   renewWatchdog();
   if (adapter.overlays)
     document.querySelectorAll<HTMLElement>(adapter.overlays).forEach((el) => {

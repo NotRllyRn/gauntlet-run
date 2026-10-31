@@ -45,7 +45,14 @@ export const krillionEntry = {
   results: krillionRounds,
 };
 export const krillionPanel =
-  '<div class="ds-root"><div><div><span class="ds-done-krill">KRILLION</span><span>Dive #107 complete</span></div><div><span class="font-display">300</span><span>-3,000m</span></div></div></div>';
+  '<div class="ds-root"><div class="ds-done"><div class="ds-done-inner"><div><div><div><span class="ds-done-krill">KRILLION</span><span>Dive #107 complete</span></div><div><span class="font-display">300</span><span>-3,000m</span></div></div><aside>Promotion</aside><section><p>The Catch</p><ul>' +
+  krillionRounds
+    .map(
+      (r, i) =>
+        `<li><button aria-expanded="false">${i + 1} ${r.rawAnswer}</button></li>`,
+    )
+    .join("") +
+  "</ul></section></div></div></div></div>";
 const lewdleBoard = (done: boolean) =>
   `<div class="testBoardWrapper">${Array.from({ length: 6 }, (_, i) => `<div class="testBoardRow">${Array.from({ length: 6 }, (_, j) => `<div class="testTile" ${j === 5 ? 'style="opacity:0"' : ""}>${done && i === 0 && j < 5 ? "SHAFT"[j] : ""}</div>`).join("")}</div>`).join("")}</div>`;
 export const adapterFixtures: Record<string, AdapterFixture> = {

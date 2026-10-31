@@ -68,7 +68,7 @@ Use **Copy image** or download the PNG from the dashboard. The popup has text an
 
 Each completed game saves its own non-spoiler `result.shareText`, separately from scores, spoiler data, and the combined summary. Saved results display this text with a per-game copy button for the selected current or historical run.
 
-Per-game share text is reconstructed from observed Wordle tiles/settings or Globle statistics. It does not read the clipboard or hidden answers. Wordle capture targets the six-row board; Globle capture targets the rendered globe canvas. Krillion captures the daily result summary (points/depth), preserving the result panel rather than hiding it. The results overlay is temporarily hidden and restored, including on failure.
+Per-game share text is reconstructed from observed Wordle tiles/settings or Globle statistics. It does not read the clipboard or hidden answers. Wordle capture targets the six-row board; Globle capture targets the rendered globe canvas. Krillion captures the daily score graph together with The Catch and all seven chosen answers, temporarily hiding intervening promotions. Its scrollable results panel is stitched at native size and restored afterward. The results overlay is temporarily hidden and restored, including on failure.
 
 ## Small modules, reusable adapter contract
 
